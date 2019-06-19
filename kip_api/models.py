@@ -161,8 +161,8 @@ def create_user_profile(sender, instance, created, **kwargs):
         return
     Profile.objects.create(user=instance)
     # Отправляем пользователю ссылку на подтверждение почты
-    # TODO Сделать отправку писем через RabbitMQ или Celery. Переделать письмо на нормальные шаблоны
     # Это место потенциальной проблемы, если почтовый сервер недоступен
+    # TODO Сделать отправку писем асихронно, через RabbitMQ, Celery или еще как. Переделать письмо на нормальные шаблоны
     token = token_generator.make_token(instance)
     url = create_email_confirm_url(instance.pk, token)
     email = EmailMessage()
