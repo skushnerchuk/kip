@@ -1,0 +1,8 @@
+dist: xenial   # required for Python >= 3.7
+language: python
+python:
+  - "3.7"
+
+notifications:
+  slack:
+    secure: o2j3/eI8zjKQL3z2W7tMcVHERO5mESt4Ce5QMg1+1VCEO1JRSuZibsi6x1uhLWqMD2r2NyI5irCZBX9RpzQlV2Ua0VDWcO9kSPv+vs8UDKQ/6OxGQHgdGk2g2HdEhw+8mDvLVg6IbxWCast91gl/0380rZbF3eipI/rBUNGSILrZkRnQfXn+alVt7XQcwdH0ETRqR7IbFcag2YXFd1s+1emX6cxgBWFXbtrPwkXV5qnW6T7PUm2v0ns6ih2qyQonmNCfA0PtxbJsF3rrnhdHEN/1x1ECkEM9oyYeFSYjB5UOnfqIRYOBNBSaU9xz2GJ7FYadw0kUxX6g1PLVmrJ6GvwKUT15us01p5AsN7hxzEyp+jzj4tnzFXo+6y9WlvTP5H8+VC3QXl2UwKum+cFaVyfXDv24/MTmXuoIxrEM+D51tmHiGovhjye2tvmFC6ruMkU+le0rR+X7bPf9dAacZ8+q322w2kp2+63ghOWNxb9AqQuT4PpgVNAR4oas7YTqyvFQ19mJl0fxSzcCMzXikIgoLFZ2sGot19o+ja4oyDfG/i0tfE8CjYXvlEGS1F48XJFTV0QvJo4TvEueHbZAWT0apnwlhNdeHb43FE7H4MVmjtviYjz8x6g4y64zpqgzLPWZ9g5TB241E/iKogMbSqFP20HlRK6SIpmkdubkDig=
