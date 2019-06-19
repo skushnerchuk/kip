@@ -1,0 +1,11 @@
+.github
+.git
+.env.example
+.env.production
+.env.debug
+local-deploy.sh
+.gitignore
+Dockerfile
+docker-compose.yml
+.flake8
+nginx

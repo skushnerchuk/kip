@@ -1,0 +1,56 @@
+version: '3'
+
+services:
+
+  database:
+    image: mariadb:10.3
+    restart: always
+    container_name: kip_db
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: kip
+    volumes:
+      - ./init.sql:/data/application/init.sql
+      - ~/mysql-data:/var/lib/mysql
+    ports:
+      - 3306:3306
+    command: --init-file /data/application/init.sql
+
+  kip:
+    build: .
+    image: drcoyote/kip:1.0
+    container_name: kip_api
+    restart: always
+    ports:
+      - 8000:8000
+    links:
+      - database:db
+    depends_on:
+      - database
+    volumes:
+      - ~/static:/app/static
+    environment:
+      EMAIL_HOST: 192.168.1.14
+      EMAIL_PORT: 25
+      EMAIL_HOST_USER: admin
+      EMAIL_HOST_PASSWORD: admin_password
+      DB_USER: root
+      DB_PASSWORD: 12345
+      DB_HOST: database
+      DB_PORT: 3306
+      DEBUG: 0
+
+  #
+  # Так как сервис API запускается под gunicorn, а он статику отдавать не умеет,
+  # подключаем nginx, так как мы хотим видеть админку красивой со всеми CSS и прочим
+  #
+  nginx:
+    image: nginx:1.17
+    container_name: kip_nginx
+    links:
+      - kip
+    ports:
+       - 80:80
+    volumes:
+       - ./nginx:/etc/nginx/conf.d
+       - ~/static:/static
