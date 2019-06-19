@@ -29,7 +29,7 @@ docker ps -q | xargs docker inspect --format "{{ .Id }} - {{ .Name }} - {{range 
 
 Перейдите по адресу
 ```
-http://nginx_api/admin
+http://nginx_ip/admin
 ```
 Данные для авторизации по умолчанию:
 ```
