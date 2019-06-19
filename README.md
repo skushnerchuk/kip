@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/otus-devops-2019-02/skushnerchuk_microservices.svg?branch=logging-1)](https://travis-ci.com/otus-devops-2019-02/skushnerchuk_microservices)
+[![Build Status](https://travis-ci.com/skushnerchuk/kip.svg?branch=master)](https://travis-ci.com/skushnerchuk/kip)
 
 ### API сервиса курсов (Django Rest Framework)
 
