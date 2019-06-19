@@ -1,16 +1,12 @@
 dist: xenial
 language: python
 sudo: required
-
 python:
-  - "3.7"
-
+- '3.7'
 install:
-  - pip install -r requirements.txt
-
+- pip install -r requirements.txt
 script:
-  - echo "Replace this line to pytest"
-
+- echo "Replace this line to pytest"
 notifications:
   slack:
-    secure: o2j3/eI8zjKQL3z2W7tMcVHERO5mESt4Ce5QMg1+1VCEO1JRSuZibsi6x1uhLWqMD2r2NyI5irCZBX9RpzQlV2Ua0VDWcO9kSPv+vs8UDKQ/6OxGQHgdGk2g2HdEhw+8mDvLVg6IbxWCast91gl/0380rZbF3eipI/rBUNGSILrZkRnQfXn+alVt7XQcwdH0ETRqR7IbFcag2YXFd1s+1emX6cxgBWFXbtrPwkXV5qnW6T7PUm2v0ns6ih2qyQonmNCfA0PtxbJsF3rrnhdHEN/1x1ECkEM9oyYeFSYjB5UOnfqIRYOBNBSaU9xz2GJ7FYadw0kUxX6g1PLVmrJ6GvwKUT15us01p5AsN7hxzEyp+jzj4tnzFXo+6y9WlvTP5H8+VC3QXl2UwKum+cFaVyfXDv24/MTmXuoIxrEM+D51tmHiGovhjye2tvmFC6ruMkU+le0rR+X7bPf9dAacZ8+q322w2kp2+63ghOWNxb9AqQuT4PpgVNAR4oas7YTqyvFQ19mJl0fxSzcCMzXikIgoLFZ2sGot19o+ja4oyDfG/i0tfE8CjYXvlEGS1F48XJFTV0QvJo4TvEueHbZAWT0apnwlhNdeHb43FE7H4MVmjtviYjz8x6g4y64zpqgzLPWZ9g5TB241E/iKogMbSqFP20HlRK6SIpmkdubkDig=
+    secure: lkXxen9fPoNpoVGhR3/ciUaNsEo0euuQO6rTMNZWB6vm1+cQjfZx+lg2RpGdvDbjefblTGmlqXzhj5wOMR75HC/B1UkzWewz+ICjD0wCQ/3lxVgAphmy8XEFI1FHV/tP4ZmhoJnTQnOhwdovVcddQj82yzjq3sKmQVxF9AJXulYabzLsKTkm5ODYhVcWjXmjUs87eBt3sIbShYuJifzwb+3DRGx7md7SwlCWVF9EQr+khfnWlxHIuLGscKc7f6I8VjLOBIyA9DSLdnjK9ObGy6WHx3e4oqpH0UKcG7OiO1+z8VxJ5OA9c9bGc9CjwBZhLA1rS8H6eBR/U2VIKakZoaMZs/Jmtby5vcbUe90fnnBTSLNb4mhK4xD3CFHSDj3904rdAor9PYrAnrJGaN74E25WdES+qTbL2wJ2RaWI9n3R08DnSzW4EXJ6eN5JbSxkE4sD/5MjtS44rNK10pLCZE0ZtPBSPnabQvjPrG5BHotnE2//Syleh1yu67SxS4JfeSHI4pJwYEh0xTDP/ScnvkNm7h7NPwUewWcDYnATLpvL/Ifa3cqXf120xsxvFDnKA+sE5SObGHRg0lIlOTElKGtUpzJXscKahMt35SAW3k9pLdtNsMjKwW2IUtM5lN+fu1YLsrGG7X+SPejQhn7SC+XyzX57SMz463lKcYTB4ic=
