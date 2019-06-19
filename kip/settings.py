@@ -151,7 +151,7 @@ REST_FRAMEWORK = {
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000/')
 API_URL = 'api/v1/'
 ACCESS_TOKEN_LIMIT = int(os.environ.get('ACCESS_TOKEN_LIMIT', 365))
-REFRESH_TOKEN_LIMIT = int(os.environ.get('REFRESH_TOKEN_LIMIT', 365))
+REFRESH_TOKEN_LIMIT = int(os.environ.get('REFRESH_TOKEN_LIMIT', 1))
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=ACCESS_TOKEN_LIMIT),
