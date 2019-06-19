@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/otus-devops-2019-02/skushnerchuk_microservices.svg?branch=logging-1)](https://travis-ci.com/otus-devops-2019-02/skushnerchuk_microservices)
+
 ### API сервиса курсов (Django Rest Framework)
 
 Для запуска проекта на машине должен быть установлен docker
@@ -55,3 +57,5 @@ docker-compose down
 ```
 
 Все данные сохранятся, если вы не удалите папку, которая монтируется в сервисе **database** в файле **docker-compose.yml**
+
+Тестирование проекта планируется с помощью сервиса **travis-ci.com**
