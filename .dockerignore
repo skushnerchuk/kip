@@ -8,4 +8,3 @@ local-deploy.sh
 Dockerfile
 docker-compose.yml
 .flake8
-nginx
