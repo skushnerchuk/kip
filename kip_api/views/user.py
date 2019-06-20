@@ -37,6 +37,7 @@ class ConfirmEmailView(APIView):
             user.email_confirmed = True
             user.save()
             return Response(status=status.HTTP_302_FOUND, headers={'Location': BASE_URL})
+        # TODO Заменить на редирект на страницу с соответствующим сообщением
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
