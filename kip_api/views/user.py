@@ -97,8 +97,8 @@ class LogoutView(APIView):
     permission_classes = (AllowAny,)
 
     @staticmethod
-    def get(request):
-        tokenb64 = request.META.get('HTTP_AUTHORIZATION').replace('Bearer ')
+    def post(request):
+        tokenb64 = request.data['token']
         token = RefreshToken(tokenb64)
         token.blacklist()
         return Response(status=status.HTTP_302_FOUND, headers={'Location': BASE_URL})
