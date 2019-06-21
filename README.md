@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.com/skushnerchuk/kip.svg?branch=master)](https://travis-ci.com/skushnerchuk/kip)
+	
+[![build status](https://gitlab.sk-developer.ru/otus/kip/badges/master/pipeline.svg)](https://gitlab.com/gitlab-com/doc-gitlab-com/commits/master)
 
 ### API сервиса курсов (Django Rest Framework)
 
