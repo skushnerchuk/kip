@@ -63,6 +63,9 @@ class CoursesListView(ListAPIView):
     serializer_class = CourseListSerializer
     permission_classes = (IsAuthenticated,)
 
+    def get_queryset(self):
+        return Course.objects.select_related('category').all()
+
     def get(self, request, *args, **kwargs):
         items = super(ListAPIView, self).list(request, args, kwargs)
         return Response({'status': 'ok', 'courses': items.data}, status.HTTP_200_OK)
@@ -73,9 +76,10 @@ class CourseDetailView(RetrieveAPIView):
     Просмотр списка всех курсов с детализацией по урокам
     """
     serializer_class = CourseSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        return Course.objects.filter(pk=self.kwargs['pk'])
+        return Course.objects.select_related('category').filter(pk=self.kwargs['pk'])
 
     def get(self, request, *args, **kwargs):
         course_detail = super().get(request, args, kwargs)

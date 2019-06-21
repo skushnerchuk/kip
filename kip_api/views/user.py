@@ -6,7 +6,7 @@ from django.utils.http import urlsafe_base64_decode
 from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.parsers import JSONParser
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -91,9 +91,10 @@ class UserDetailView(RetrieveAPIView):
     Подробная информация о пользователе, включая профиль и курсы, на которые он записан
     """
     serializer_class = UserDetailSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        return get_user_model().objects.filter(pk=self.kwargs['pk'])
+        return get_user_model().objects.select_related('profile').filter(pk=self.kwargs['pk'])
 
     def get(self, request, *args, **kwargs):
         user_detail = super().get(request, args, kwargs)
