@@ -6,3 +6,4 @@ python-dotenv==0.10.3
 mysqlclient==1.4.2.post1
 gunicorn==19.9.0
 drf-yasg==1.16.0
+factory_boy==2.12.0

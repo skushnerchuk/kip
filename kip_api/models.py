@@ -83,11 +83,12 @@ class Lesson(models.Model):
         db_table = 'lessons'
         verbose_name = 'Урок'
         verbose_name_plural = 'Уроки'
+        unique_together = ('course', 'name')
 
     # Курс к которому относится занятие
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name=_('Курс'), related_name='course_id')
     # Краткое наименование урока
-    name = models.CharField(max_length=255, unique=True, verbose_name=_('Название'))
+    name = models.CharField(max_length=255, verbose_name=_('Название'))
     # Полное описание урока
     description = models.TextField(verbose_name=_('Описание'))
     # Порядковый № урока в курсе
@@ -159,6 +160,7 @@ class Profile(models.Model):
 def create_user_profile(sender, instance, created, **kwargs):
     if not created:
         return
+    print('Create profile')
     Profile.objects.create(user=instance)
     # Отправляем пользователю ссылку на подтверждение почты
     # Это место потенциальной проблемы, если почтовый сервер недоступен
