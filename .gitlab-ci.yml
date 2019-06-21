@@ -6,4 +6,5 @@ stages:
 build:
   stage: build
   script:
+    - export DOCKER_HOST="tcp://localhost:2375"
     - docker build -t drcoyote:1.0 .
