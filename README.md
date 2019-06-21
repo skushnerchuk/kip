@@ -58,3 +58,22 @@ docker-compose down
 
 Все данные сохранятся, если вы не удалите папку, которая монтируется в сервисе **database** в файле **docker-compose.yml**
 
+Для управления тестовыми данными можно использовать команду:
+
+```bash
+$ python3 manage.py prepare_data
+```
+Для получения параметров команды выполните:
+```bash
+$ python3 manage.py prepare_data --help
+```
+Пример для добавления новых данных:
+```bash
+$ python3 manage.py prepare_data --fill --users 1 --categories 5 --courses 5 --lessons 10
+```
+Выполнение этой команды приведет к созданию 1 пользователя, 5 категорий, 5 курсов в каждой категории и 10 уроков в каждом курсе
+
+Пример для удаления всех данных:
+```bash
+$ python3 manage.py prepare_data --clear
+```

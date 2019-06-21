@@ -1,6 +1,6 @@
 import factory
 from django.db.models.signals import post_save
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, no_translations
 
 from kip_api.models import (
     CoursesCategory, Course, User, Profile, Lesson
@@ -70,6 +70,32 @@ class LessonFactory(factory.django.DjangoModelFactory):
 class Command(BaseCommand):
     help = 'Generate random data for testing'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--clear',
+            action='store_true',
+            help='Clear ALL data in database',
+        )
+
+        parser.add_argument(
+            '--fill',
+            action='store_true',
+            help='Generate random data',
+        )
+
+        parser.add_argument(
+            '--users', action='store', help='Count of users', type=int, default=1
+        )
+        parser.add_argument(
+            '--categories', action='store', help='Count of categories', type=int, default=1
+        )
+        parser.add_argument(
+            '--courses', action='store', help='Count of courses in each category', type=int, default=1
+        )
+        parser.add_argument(
+            '--lessons', action='store', help='Count of lessons in each course', type=int, default=1
+        )
+
     @staticmethod
     def generate_users(count):
         User.objects.all().delete()
@@ -100,12 +126,24 @@ class Command(BaseCommand):
             # Начинаем нумировать уроки заново
             LessonFactory.reset_sequence(1)
 
+    @no_translations
     def handle(self, *args, **options):
-        print('Generate users...')
-        self.generate_users(100)
-        print('Generate categories...')
-        self.generate_categories(10)
-        print('Generate courses...')
-        self.generate_courses(10)
-        print('Generate lessons...')
-        self.generate_lessons(50)
+        if options['clear']:
+            print('Clear ALL database data')
+            User.objects.all().delete()
+            CoursesCategory.objects.all().delete()
+            return
+        if options['fill']:
+            users_count = options['users']
+            categories_count = options['categories']
+            courses_count = options['courses']
+            lessons_count = options['lessons']
+
+            print('Generate users...')
+            self.generate_users(users_count)
+            print('Generate categories...')
+            self.generate_categories(categories_count)
+            print('Generate courses...')
+            self.generate_courses(courses_count)
+            print('Generate lessons...')
+            self.generate_lessons(lessons_count)
