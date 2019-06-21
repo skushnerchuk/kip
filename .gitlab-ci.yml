@@ -11,4 +11,4 @@ stages:
 build:
   stage: build
   script:
-    - docker build -t drcoyote:1.0 .
+    - docker build -t drcoyote/kip_api:1.0 .
