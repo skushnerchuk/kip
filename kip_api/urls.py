@@ -5,13 +5,14 @@ from .views.courses import (
     CourseSignupView, CoursesListView, CourseDetailView
 )
 from .views.user import (
-    CreateUserView, ConfirmEmailView, LoginView, UserDetailView,
+    CreateUserView, ConfirmEmailView, LoginView, UserDetailView, LogoutView,
 )
 
 urlpatterns = [
     path('auth/register/', CreateUserView.as_view(), name='register'),
     path('auth/confirm_email/<str:user>/<str:token>', ConfirmEmailView.as_view(), name='confirm_email'),
-    path('auth/login/', LoginView.as_view(), name='token_obtain_pair'),
+    path('auth/login/', LoginView.as_view(), name='login'),
+    path('auth/logout/', LogoutView.as_view(), name='logout'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 

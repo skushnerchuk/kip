@@ -10,6 +10,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from kip.settings import BASE_URL
 from kip_api.serializers.user import UserDetailSerializer
@@ -84,6 +85,23 @@ class LoginView(TokenObtainPairView):
         result = dict(status='ok')
         result['tokens'] = auth_result.data
         return Response(result, status.HTTP_200_OK)
+
+
+class LogoutView(APIView):
+    """
+    Выход из системы
+    Сводится к блокировке refresh-токена, при этом фронт должен
+    перед вызовом этого метода удалить оба токена из своего хранилища
+    """
+    parser_classes = (JSONParser,)
+    permission_classes = (AllowAny,)
+
+    @staticmethod
+    def get(request):
+        tokenb64 = request.META.get('HTTP_AUTHORIZATION').replace('Bearer ')
+        token = RefreshToken(tokenb64)
+        token.blacklist()
+        return Response(status=status.HTTP_302_FOUND, headers={'Location': BASE_URL})
 
 
 class UserDetailView(RetrieveAPIView):
