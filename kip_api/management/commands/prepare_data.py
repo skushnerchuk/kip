@@ -10,6 +10,7 @@ from kip_api.models import (
 class CategoryFactory(factory.django.DjangoModelFactory):
     """
     Фабрика категорий курсов
+    Имена категорий генерируются по шаблону: Category_N
     """
     class Meta:
         model = CoursesCategory
@@ -20,6 +21,8 @@ class CategoryFactory(factory.django.DjangoModelFactory):
 class CourseFactory(factory.django.DjangoModelFactory):
     """
     Фабрика курсов
+    Имена курсов генерируются по шаблону: Course_N
+    Описание заполняется случайным текстом
     """
     class Meta:
         model = Course
@@ -56,6 +59,10 @@ class UserFactory(factory.django.DjangoModelFactory):
 
 
 class LessonFactory(factory.django.DjangoModelFactory):
+    """
+    Фабрика уроков
+    Имя урока генерируется по шаблону Lesson_N
+    """
     class Meta:
         model = Lesson
 
@@ -68,7 +75,7 @@ class LessonFactory(factory.django.DjangoModelFactory):
 
 
 class Command(BaseCommand):
-    help = 'Generate random data for testing'
+    help = 'Manage database data'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -126,24 +133,31 @@ class Command(BaseCommand):
             # Начинаем нумировать уроки заново
             LessonFactory.reset_sequence(1)
 
+    @staticmethod
+    def clear():
+        print('Clear ALL database data')
+        User.objects.all().delete()
+        CoursesCategory.objects.all().delete()
+
     @no_translations
     def handle(self, *args, **options):
         if options['clear']:
-            print('Clear ALL database data')
-            User.objects.all().delete()
-            CoursesCategory.objects.all().delete()
+            self.clear()
             return
+
         if options['fill']:
+            # Всегда очищаем базу перед заполнением новыми данными
+            self.clear()
             users_count = options['users']
             categories_count = options['categories']
             courses_count = options['courses']
             lessons_count = options['lessons']
 
-            print('Generate users...')
+            print('Generating {} users...'.format(users_count))
             self.generate_users(users_count)
-            print('Generate categories...')
+            print('Generating {} categories...'.format(categories_count))
             self.generate_categories(categories_count)
-            print('Generate courses...')
+            print('Generating {} courses per category...'.format(courses_count))
             self.generate_courses(courses_count)
-            print('Generate lessons...')
+            print('Generating {} lessons per course...'.format(lessons_count))
             self.generate_lessons(lessons_count)
