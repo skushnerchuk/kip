@@ -65,7 +65,7 @@ class CreateUserView(ValidateMixin, APIView):
             raise
 
 
-class LoginView(TokenObtainPairView):
+class LoginView(ValidateMixin, TokenObtainPairView):
     """
     Авторизация
     """
@@ -73,13 +73,11 @@ class LoginView(TokenObtainPairView):
     permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        serializer = UserDetailSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise APIException('Неверные входные данные', status.HTTP_400_BAD_REQUEST)
+        validated_data = self.check(request, UserDetailSerializer)
         auth_result = super(TokenObtainPairView, self).post(request, args, kwargs)
         if auth_result.status_code != status.HTTP_200_OK:
             raise APIException('Доступ запрещен', status.HTTP_403_FORBIDDEN)
-        user = get_user_model().objects.filter(email=request.data['email']).first()
+        user = get_user_model().objects.filter(email=validated_data['email']).first()
         user.last_login = timezone.now()
         user.save()
         result = dict(status='ok')

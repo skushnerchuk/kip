@@ -12,7 +12,7 @@ from kip_api.utils import APIException
 from kip_api.mixins import ValidateMixin
 
 
-class CourseSignupView(APIView):
+class CourseSignupView(ValidateMixin, APIView):
     """
     Регистрация пользователя на курс
     """
