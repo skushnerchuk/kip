@@ -120,7 +120,7 @@ class User(AbstractUser):
     # Курсы, на которые записан пользователь
     courses = models.ManyToManyField(Course, blank=True)
 
-    # Теперь логин - это пароль
+    # Теперь логин - это почта
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 

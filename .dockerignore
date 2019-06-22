@@ -1,7 +1,6 @@
 .github/
 .git/
 .env.*
-local-deploy.sh
 .gitignore
 Dockerfile
 docker-compose.yml
