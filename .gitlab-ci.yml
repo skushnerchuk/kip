@@ -18,3 +18,4 @@ build:
     - docker build -t drcoyote/kip:backend_$VERSION -t drcoyote/kip:backend_latest .
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
     - docker push $CI_REGISTRY_USER/kip:backend_$VERSION $CI_REGISTRY_USER/kip:backend_latest
+    - docker push $CI_REGISTRY_USER/kip:backend_latest
