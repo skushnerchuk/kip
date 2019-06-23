@@ -15,7 +15,7 @@ stages:
 build:
   stage: build
   script:
-    - docker build -t drcoyote/kip_backend:$VERSION .
+    - docker build -t drcoyote/kip:backend_$VERSION -t drcoyote/kip:backend_latest .
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
-    - docker tag drcoyote/kip_backend:$VERSION
-    - docker push $CI_REGISTRY_USER/kip_backend:$VERSION
+    - docker tag drcoyote/kip:backend_$VERSION
+    - docker push $CI_REGISTRY_USER/kip:backend_$VERSION $CI_REGISTRY_USER/kip:backend_latest
