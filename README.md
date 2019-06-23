@@ -77,3 +77,9 @@ $ python3 manage.py prepare_data --fill --users 1 --categories 5 --courses 5 --l
 ```bash
 $ python3 manage.py prepare_data --clear
 ```
+
+В настроящее время на приватном GitLab выполняется сборка образа и его отправка в Docker Hub. 
+Демо проекта будет доступно по адресу:
+```
+https://kip.sk-developer.ru
+```
