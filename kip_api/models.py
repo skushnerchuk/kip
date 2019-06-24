@@ -49,6 +49,7 @@ class CoursesCategory(models.Model):
         db_table = 'courses_categories'
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории курсов'
+        app_label = 'kip_api'
 
     name = models.CharField(max_length=100, unique=True, default='Новая категория')
 
@@ -65,6 +66,7 @@ class Course(models.Model):
         db_table = 'courses'
         verbose_name = 'Курс'
         verbose_name_plural = 'Курсы'
+        app_label = 'kip_api'
 
     category = models.ForeignKey(CoursesCategory, on_delete=models.CASCADE, verbose_name='Категория')
     name = models.CharField(max_length=255, unique=True, verbose_name='Название')
@@ -84,6 +86,7 @@ class Lesson(models.Model):
         verbose_name = 'Урок'
         verbose_name_plural = 'Уроки'
         unique_together = ('course', 'name')
+        app_label = 'kip_api'
 
     # Курс к которому относится занятие
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name=_('Курс'), related_name='course_id')
@@ -139,6 +142,7 @@ class Profile(models.Model):
         db_table = 'profiles'
         verbose_name = 'Профиль'
         verbose_name_plural = 'Профили'
+        app_label = 'kip_api'
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     # Дата рождения

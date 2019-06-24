@@ -32,7 +32,7 @@ DEBUG = int(os.environ.get('DEBUG', 1))
 if DEBUG:
     load_dotenv('.env')
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['127.0.0.1', '192.168.1.14', '192.168.1.1', '192.168.1.111',]
 INTERNAL_IPS = ('127.0.0.1',)
 
 # Application definition
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
+    'admin_reorder',
 ]
 if DEBUG:
     INSTALLED_APPS.append('debug_toolbar')
@@ -60,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'admin_reorder.middleware.ModelAdminReorder',
 ]
 
 if DEBUG:
@@ -196,3 +198,9 @@ SWAGGER_SETTINGS = {
 REDOC_SETTINGS = {
     'LAZY_RENDERING': False,
 }
+
+ADMIN_REORDER = (
+    'kip_api',
+    {'app': 'kip_api', 'models': ('auth.User',)},
+    {'app': 'auth', 'models': ('kip_api.User', 'auth.Group')},
+)
