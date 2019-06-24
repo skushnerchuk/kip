@@ -7,3 +7,4 @@ docker-compose.yml
 .flake8
 .travis.yml
 README.md
+**/management

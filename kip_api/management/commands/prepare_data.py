@@ -79,15 +79,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--clear',
-            action='store_true',
-            help='Clear ALL data in database',
+            '--clear', action='store_true', help='Clear ALL data in database',
         )
 
         parser.add_argument(
-            '--fill',
-            action='store_true',
-            help='Generate random data',
+            '--fill', action='store_true', help='Generate random data',
         )
 
         parser.add_argument(

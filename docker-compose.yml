@@ -17,8 +17,7 @@ services:
     command: --init-file /data/application/init.sql
 
   kip:
-    build: .
-    image: drcoyote/kip:1.0
+    image: drcoyote/kip:backend_latest
     container_name: kip_api
     restart: always
     ports:
