@@ -79,7 +79,12 @@ $ python3 manage.py prepare_data --clear
 ```
 
 В настроящее время на приватном GitLab настроена и выполняется сборка образа и его отправка в Docker Hub. 
-Демо проекта будет доступно по адресу:
+Демо проекта доступно по адресу:
+Админка:
 ```
-https://kip.sk-developer.ru
+https://kip.sk-developer.ru/admin/
+```
+API:
+```
+https://kip.sk-developer.ru/api/v1/
 ```
