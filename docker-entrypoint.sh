@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 
 # Ожидаем поднятия базы, иначе придется перезапускать сервис
+echo ${DB_HOST}:${DB_PORT}
+
 ./wait-for-db.sh ${DB_HOST}:${DB_PORT}
 
 python3 manage.py migrate --no-input
