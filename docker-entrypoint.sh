@@ -5,10 +5,6 @@ echo ${DB_HOST}:${DB_PORT}
 
 ./wait-for-db.sh ${DB_HOST}:${DB_PORT}
 
-rm -r ./kip_api/migrations/
-mkdir -p ./kip_api/migrations/
-touch ./kip_api/migrations/__init__.py
-
 python3 manage.py makemigrations
 python3 manage.py migrate --no-input
 python3 manage.py collectstatic --no-input
