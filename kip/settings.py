@@ -32,7 +32,7 @@ DEBUG = int(os.environ.get('DEBUG', 1))
 if DEBUG:
     load_dotenv('.env')
 
-ALLOWED_HOSTS = ['127.0.0.1', '192.168.1.14', '192.168.1.1', '192.168.1.111',]
+ALLOWED_HOSTS = ['127.0.0.1', '192.168.1.14', '192.168.1.1', '192.168.1.111', 'localhost']
 INTERNAL_IPS = ('127.0.0.1',)
 
 # Application definition
@@ -159,7 +159,11 @@ REST_FRAMEWORK = {
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000/')
 API_URL = 'api/v1/'
 ACCESS_TOKEN_LIMIT = int(os.environ.get('ACCESS_TOKEN_LIMIT', 15))
-REFRESH_TOKEN_LIMIT = int(os.environ.get('REFRESH_TOKEN_LIMIT', 365))
+REFRESH_TOKEN_LIMIT = int(os.environ.get('REFRESH_TOKEN_LIMIT', 30))
+
+if DEBUG:
+    ACCESS_TOKEN_LIMIT = 600
+    REFRESH_TOKEN_LIMIT = 365
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=ACCESS_TOKEN_LIMIT),

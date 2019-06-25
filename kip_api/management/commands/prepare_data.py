@@ -1,5 +1,4 @@
 import factory
-from django.db.models.signals import post_save
 from django.core.management.base import BaseCommand, no_translations
 
 from kip_api.models import (
@@ -44,7 +43,6 @@ class ProfileFactory(factory.django.DjangoModelFactory):
     biography = factory.Faker('text')
 
 
-@factory.django.mute_signals(post_save)
 class UserFactory(factory.django.DjangoModelFactory):
     """
     Фабрика пользователей. Отключаем также сигнал post_save, так как профили мы будем создавать сами,

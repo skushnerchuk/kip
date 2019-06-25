@@ -1,58 +1,64 @@
-from django.db import IntegrityError
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.parsers import JSONParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from kip_api.models import Course
-from kip_api.serializers.courses import CourseListSerializer, CourseSerializer
+from kip_api.mixins import ValidateMixin, ObjectExistMixin
+from kip_api.models import Course, CoursesCategory
+from kip_api.permissions import IsEmailConfirmed
+from kip_api.serializers.courses import (
+    CourseListSerializer, CourseSerializer, CourseCreateSerializer
+)
 from kip_api.utils import APIException
-from kip_api.mixins import ValidateMixin
 
 
-class CourseSignupView(ValidateMixin, APIView):
+class CourseSignupView(ObjectExistMixin, ValidateMixin, APIView):
     """
-    Регистрация пользователя на курс
+    Регистрация пользователя на курс.
     """
     parser_classes = (JSONParser,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsEmailConfirmed,)
 
-    @staticmethod
-    def post(request):
-        try:
-            request.user.courses.add(request.data['course_id'])
-            request.user.save()
-            return Response({'status': 'ok'}, status.HTTP_201_CREATED)
-        except IntegrityError as ex:
-            if ex.args[0] == 1452:
-                raise APIException('Такого курса не существует', status.HTTP_400_BAD_REQUEST)
-            if ex.args[0] == 1062:
-                raise APIException('Вы уже записаны на этот курс', status.HTTP_400_BAD_REQUEST)
-            raise
+    def post(self, request):
+
+        course_pk = int(request.data['course_id'])
+        if not self.object_exists(Course, {'pk': course_pk}):
+            raise APIException('Такого курса не существует', status.HTTP_400_BAD_REQUEST)
+        courses = list(request.user.courses.all().values_list('pk', flat=True))
+        if course_pk in courses:
+            raise APIException('Вы уже записаны на этот курс', status.HTTP_400_BAD_REQUEST)
+        request.user.courses.add(request.data['course_id'])
+        request.user.save()
+        return Response({'status': 'ok'}, status.HTTP_201_CREATED)
 
 
-class CreateCourseView(ValidateMixin, APIView):
+class CreateCourseView(ObjectExistMixin, ValidateMixin, APIView):
     """
     Создание курса
     """
     parser_classes = (JSONParser,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAdminUser,)
     model = Course
-    serializer_class = CourseSerializer
+    serializer_class = CourseCreateSerializer
 
     def post(self, request):
-        try:
-            validated_data = self.check(request, CourseSerializer)
-            course = Course.objects.create(email=validated_data['email'], )
-            course.save()
-            return Response(status=status.HTTP_201_CREATED)
-        except IntegrityError as ex:
-            if ex.args[0] == 1062:
-                raise APIException('Курс с названием {} уже существует'.format(request.data['name']),
-                                   status.HTTP_400_BAD_REQUEST)
-            raise
+        validated_data = self.check(request, CourseCreateSerializer)
+        name = validated_data['name']
+        category = validated_data['category_id']
+
+        if not self.object_exists(CoursesCategory, {'pk': category}):
+            raise APIException('Такой категории не существует', status.HTTP_400_BAD_REQUEST)
+
+        if self.object_exists(Course, {'name': name, 'category_id': category}):
+            raise APIException('Курс с названием {} в указанной категории уже существует'.
+                               format(request.data['name']),
+                               status.HTTP_400_BAD_REQUEST)
+
+        course = Course.objects.create(name=validated_data['name'], category_id=category)
+        course.save()
+        return Response(status=status.HTTP_201_CREATED)
 
 
 class CoursesListView(ListAPIView):

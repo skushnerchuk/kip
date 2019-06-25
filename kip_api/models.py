@@ -1,13 +1,6 @@
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.core.mail import EmailMessage
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
-
-from kip.settings import EMAIL_INFORMATOR
-from .utils import token_generator, create_email_confirm_url
 
 
 class UserManager(BaseUserManager):
@@ -67,9 +60,10 @@ class Course(models.Model):
         verbose_name = 'Курс'
         verbose_name_plural = 'Курсы'
         app_label = 'kip_api'
+        unique_together = ('category', 'name')
 
     category = models.ForeignKey(CoursesCategory, on_delete=models.CASCADE, verbose_name='Категория')
-    name = models.CharField(max_length=255, unique=True, verbose_name='Название')
+    name = models.CharField(max_length=255, verbose_name='Название')
     description = models.TextField(verbose_name='Описание')
 
     def __str__(self):
@@ -152,34 +146,3 @@ class Profile(models.Model):
 
     def __str__(self):
         return 'Профиль {}'.format(self.user.email)
-
-
-##################
-#
-# Events listeners
-#
-# Служат для создания/обновления профиля пользователя без обращения к методу save() объекта user.profile
-#
-@receiver(post_save, sender=get_user_model())
-def create_user_profile(sender, instance, created, **kwargs):
-    if not created:
-        return
-    print('Create profile')
-    Profile.objects.create(user=instance)
-    # Отправляем пользователю ссылку на подтверждение почты
-    # Это место потенциальной проблемы, если почтовый сервер недоступен
-    # TODO Сделать отправку писем асихронно, через RabbitMQ, Celery или еще как. Переделать письмо на нормальные шаблоны
-    token = token_generator.make_token(instance)
-    url = create_email_confirm_url(instance.pk, token)
-    email = EmailMessage()
-    email.content_subtype = 'html'
-    email.subject = 'Подтвердите регистрацию аккаунта'
-    email.body = '<a href="{}" target="_blank">Перейдите по ссылке для подтверждения</a>'.format(url)
-    email.from_email = EMAIL_INFORMATOR
-    email.to = [instance.email]
-    email.send(fail_silently=True)
-
-
-@receiver(post_save, sender=get_user_model())
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()

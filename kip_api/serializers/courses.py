@@ -19,6 +19,20 @@ class LessonlSerializer(serializers.ModelSerializer):
     duration = serializers.IntegerField()
 
 
+class CourseCreateSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор курса, включая данные по всем урокам
+    """
+
+    class Meta:
+        model = Course
+        fields = ('category_id', 'name', 'description',)
+
+    category_id = serializers.IntegerField()
+    name = serializers.CharField()
+    description = serializers.CharField()
+
+
 class CourseSerializer(serializers.ModelSerializer):
     """
     Сериализатор курса, включая данные по всем урокам
@@ -29,7 +43,7 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = ('pk', 'category', 'name', 'description', 'lessons',)
 
     lessons = LessonlSerializer(source='course_id', many=True)
-    category = serializers.CharField()
+    category = serializers.IntegerField()
     name = serializers.CharField()
     description = serializers.CharField()
 

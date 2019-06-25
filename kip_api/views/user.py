@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
 from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
@@ -9,13 +8,14 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from kip.settings import BASE_URL
+from kip_api.mixins import ValidateMixin, ObjectExistMixin, EmailMixin
+from kip_api.models import Profile
 from kip_api.serializers.user import UserDetailSerializer
 from kip_api.utils import token_generator, APIException
-from kip_api.mixins import ValidateMixin
 
 
 class ConfirmEmailView(APIView):
@@ -42,7 +42,7 @@ class ConfirmEmailView(APIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class CreateUserView(ValidateMixin, APIView):
+class CreateUserView(ObjectExistMixin, ValidateMixin, EmailMixin, APIView):
     """
     Регистрация нового пользователя
     """
@@ -52,17 +52,16 @@ class CreateUserView(ValidateMixin, APIView):
     serializer_class = UserDetailSerializer
 
     def post(self, request):
-        try:
-            validated_data = self.check(request, UserDetailSerializer)
-            user = get_user_model().objects.create(email=validated_data['email'])
-            user.set_password(request.data['password'])
-            user.save()
-            return Response({'status': 'ok'}, status.HTTP_201_CREATED)
-        except IntegrityError as ex:
-            if ex.args[0] == 1062:
-                raise APIException('Пользователь с адресом {} уже зарегистрирован'.format(request.data['email']),
-                                   status.HTTP_400_BAD_REQUEST)
-            raise
+        validated_data = self.check(request, UserDetailSerializer)
+        if self.object_exists(get_user_model(), {'email': validated_data['email']}):
+            raise APIException('Пользователь с адресом {} уже зарегистрирован'.format(request.data['email']),
+                               status.HTTP_400_BAD_REQUEST)
+        user = get_user_model().objects.create(email=validated_data['email'])
+        user.set_password(request.data['password'])
+        user.save()
+        Profile.objects.create(user=user)
+        self.send_email_for_confirm(user)
+        return Response({'status': 'ok'}, status.HTTP_201_CREATED)
 
 
 class LoginView(ValidateMixin, TokenObtainPairView):

@@ -6,6 +6,10 @@ from .courses import CourseListSerializer
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    """
+    Сведения о профиле пользователя
+    """
+
     class Meta:
         model = Profile
         fields = ('birth_date',)
