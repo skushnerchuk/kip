@@ -32,8 +32,7 @@ DEBUG = int(os.environ.get('DEBUG', 1))
 if DEBUG:
     load_dotenv('.env')
 
-ALLOWED_HOSTS = ['127.0.0.1', '192.168.1.14', '192.168.1.1', '192.168.1.111', 'localhost',
-                 'mail', '*.sk-developer.ru']
+ALLOWED_HOSTS = ['*']
 INTERNAL_IPS = ('127.0.0.1',)
 
 # Application definition
