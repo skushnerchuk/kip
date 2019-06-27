@@ -148,6 +148,9 @@ STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'kip_api.handlers.core_exception_handler',
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
@@ -155,6 +158,8 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
+if DEBUG:
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append('rest_framework.renderers.BrowsableAPIRenderer')
 
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000/')
 API_URL = 'api/v1/'
