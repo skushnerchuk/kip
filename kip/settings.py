@@ -209,6 +209,7 @@ REDOC_SETTINGS = {
 }
 
 ADMIN_REORDER = (
+    'token_blacklist',
     'kip_api',
     {'app': 'kip_api', 'models': ('auth.User',)},
     {'app': 'auth', 'models': ('kip_api.User', 'auth.Group')},
