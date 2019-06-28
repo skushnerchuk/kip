@@ -10,7 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
+import logging
 import os
+import sys
 from datetime import timedelta
 
 from dotenv import load_dotenv
@@ -214,3 +216,32 @@ ADMIN_REORDER = (
     {'app': 'kip_api', 'models': ('auth.User',)},
     {'app': 'auth', 'models': ('kip_api.User', 'auth.Group')},
 )
+
+# Логи будем готовить сами
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    # 'handlers': {
+    #     'file': {
+    #         'level': 'INFO',
+    #         'class': 'logging.FileHandler',
+    #         'filename': '/home/alx/django/debug.log',
+    #     },
+    # },
+    # 'loggers': {
+    #     'django.request': {
+    #         'handlers': ['file'],
+    #         'level': 'INFO',
+    #         'propagate': True,
+    #     },
+    #     'stpaccount.views': {
+    #         'handlers': ['file'],
+    #         'level': 'INFO',
+    #         'propagate': True,
+    #     },
+    # },
+
+}
+LOGGING_LEVEL = os.environ.get('LOGGING_LEVEL', logging.DEBUG)
+logging.basicConfig(level=LOGGING_LEVEL, stream=sys.stdout)
+south_logger = logging.getLogger('south')

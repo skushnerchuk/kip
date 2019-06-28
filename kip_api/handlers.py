@@ -1,6 +1,27 @@
+import datetime
+import logging
+import traceback
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
+
+logger = logging.getLogger(__name__)
+
+
+
+
+def log(exc, context):
+    log_record = {
+        'fired': datetime.datetime.utcnow().strftime("%d-%m-%Y %H:%M:%S.%f"),
+        'traceback': {
+            'stack': traceback.format_stack(),
+            'data': traceback.format_exc()
+        },
+        'raw': '{}'.format(exc),
+        'context': '{}'.format(context)
+    }
+    logger.error(log_record)
 
 
 def core_exception_handler(exc, context):
@@ -9,6 +30,8 @@ def core_exception_handler(exc, context):
     Некоторые ошибки обрабатываются в бизнес-логике, так как или требуют возврата
     дополнительных данных или зависят от контекста и окружения
     """
+    log(exc)
+
     result = {'status': 'error', 'message': ''}
     handlers = {
         'notauthenticated': not_authenticated_handler,
