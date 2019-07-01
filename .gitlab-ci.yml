@@ -9,7 +9,7 @@ services:
 
 before_script:
   - docker info
-  - ping -c 4 https://registry.sk-developer.ru || true
+  - ping -c 4 registry.sk-developer.ru || true
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD registry.sk-developer.ru
 
 stages:
