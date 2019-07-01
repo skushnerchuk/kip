@@ -1,17 +1,4 @@
-#image: docker:latest
-
 variables:
-  VERSION: '1.0'
-  IMAGE: registry.sk-developer.ru/kip_backend
-
-#services:
-#  - docker:dind
-
-
-before_script:
-  - docker info
-  - ping -c 4 registry.sk-developer.ru || true
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD registry.sk-developer.ru
 
 stages:
   - build
@@ -21,6 +8,4 @@ build:
   tags:
     - kip-backend
   script:
-    - docker build -t $IMAGE:$VERSION -t $IMAGE:latest .
-    - docker push $IMAGE:$VERSION
-    - docker push $IMAGE:latest
+    - echo 'BUILD'
