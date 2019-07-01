@@ -16,6 +16,7 @@ build:
   stage: build
   script:
     - docker build -t registry.sk-developer.ru/kip_backend:$VERSION -t registry.sk-developer.ru/kip_backend:latest .
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD registry.sk-developer.ru
     - docker push registry.sk-developer.ru/kip_backend:$VERSION
     - docker push registry.sk-developer.ru/kip_backend:latest
+    - docker logout
