@@ -1,11 +1,11 @@
-image: docker:latest
+#image: docker:latest
 
 variables:
   VERSION: '1.0'
   IMAGE: registry.sk-developer.ru/kip_backend
 
-services:
-  - docker:dind
+#services:
+#  - docker:dind
 
 before_script:
   - docker info
