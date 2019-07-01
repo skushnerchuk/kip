@@ -217,31 +217,21 @@ ADMIN_REORDER = (
     {'app': 'auth', 'models': ('kip_api.User', 'auth.Group')},
 )
 
-# Логи будем готовить сами
+#
+# Все логи пишем в stdout. Так как работа приложения планируется в контейнере,
+# то логи будем собирать из контейнеров централизованно через FluentD
+#
+
+# Логи будем готовить сами, логи django нас не интересуют
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
-    # 'handlers': {
-    #     'file': {
-    #         'level': 'INFO',
-    #         'class': 'logging.FileHandler',
-    #         'filename': '/home/alx/django/debug.log',
-    #     },
-    # },
-    # 'loggers': {
-    #     'django.request': {
-    #         'handlers': ['file'],
-    #         'level': 'INFO',
-    #         'propagate': True,
-    #     },
-    #     'stpaccount.views': {
-    #         'handlers': ['file'],
-    #         'level': 'INFO',
-    #         'propagate': True,
-    #     },
-    # },
-
 }
-LOGGING_LEVEL = os.environ.get('LOGGING_LEVEL', logging.DEBUG)
-logging.basicConfig(level=LOGGING_LEVEL, stream=sys.stdout)
-south_logger = logging.getLogger('south')
+
+LOGGING_LEVEL = int(os.environ.get('LOGGING_LEVEL', logging.DEBUG))
+
+logging.basicConfig(
+    level=LOGGING_LEVEL,
+    handlers=[logging.StreamHandler(sys.stdout)],
+    format='%(message)s'
+)

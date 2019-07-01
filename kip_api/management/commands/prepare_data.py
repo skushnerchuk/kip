@@ -11,6 +11,7 @@ class CategoryFactory(factory.django.DjangoModelFactory):
     Фабрика категорий курсов
     Имена категорий генерируются по шаблону: Category_N
     """
+
     class Meta:
         model = CoursesCategory
 
@@ -23,6 +24,7 @@ class CourseFactory(factory.django.DjangoModelFactory):
     Имена курсов генерируются по шаблону: Course_N
     Описание заполняется случайным текстом
     """
+
     class Meta:
         model = Course
 
@@ -36,6 +38,7 @@ class ProfileFactory(factory.django.DjangoModelFactory):
     """
     Фабрика профилей пользователей
     """
+
     class Meta:
         model = Profile
 
@@ -48,6 +51,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     Фабрика пользователей. Отключаем также сигнал post_save, так как профили мы будем создавать сами,
     и письма отправлять никому не хотим
     """
+
     class Meta:
         model = User
 
@@ -61,6 +65,7 @@ class LessonFactory(factory.django.DjangoModelFactory):
     Фабрика уроков
     Имя урока генерируется по шаблону Lesson_N
     """
+
     class Meta:
         model = Lesson
 
