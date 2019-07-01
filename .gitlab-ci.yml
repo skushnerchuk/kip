@@ -15,7 +15,7 @@ stages:
 build:
   stage: build
   script:
-    - docker build -t drcoyote/kip:backend_$VERSION -t drcoyote/kip:backend_latest .
+    - docker build -t registry.sk-developer.ru/kip_backend:$VERSION -t registry.sk-developer.ru/kip_backend:latest .
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
-    - docker push $CI_REGISTRY_USER/kip:backend_$VERSION
-    - docker push $CI_REGISTRY_USER/kip:backend_latest
+    - docker push registry.sk-developer.ru/kip_backend:$VERSION
+    - docker push registry.sk-developer.ru/kip_backend:latest
