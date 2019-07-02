@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from rest_framework import status
@@ -12,9 +11,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from kip.settings import BASE_URL
-from kip_api.mixins import ValidateMixin, ObjectExistMixin, EmailMixin
-from kip_api.models.courses import Profile
-from kip_api.serializers.user import UserDetailSerializer
+from kip_api.logic.user import UserService
+from kip_api.mixins import ValidateMixin
+from kip_api.serializers.user import (
+    UserLoginSerializer, UserDetailSerializer, ProfileSerializer
+)
 from kip_api.utils import token_generator, APIException
 
 
@@ -42,25 +43,16 @@ class ConfirmEmailView(APIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class CreateUserView(ObjectExistMixin, ValidateMixin, EmailMixin, APIView):
+class CreateUserView(ValidateMixin, APIView):
     """
     Регистрация нового пользователя
     """
     parser_classes = (JSONParser,)
     permission_classes = (AllowAny,)
-    model = get_user_model()
-    serializer_class = UserDetailSerializer
 
     def post(self, request):
         validated_data = self.check(request, UserDetailSerializer)
-        if self.object_exists(get_user_model(), {'email': validated_data['email']}):
-            raise APIException('Пользователь с адресом {} уже зарегистрирован'.format(request.data['email']),
-                               status.HTTP_400_BAD_REQUEST)
-        user = get_user_model().objects.create(email=validated_data['email'])
-        user.set_password(request.data['password'])
-        user.save()
-        Profile.objects.create(user=user)
-        self.send_email_for_confirm(user)
+        UserService.create(validated_data)
         return Response({'status': 'ok'}, status.HTTP_201_CREATED)
 
 
@@ -72,15 +64,15 @@ class LoginView(ValidateMixin, TokenObtainPairView):
     permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        validated_data = self.check(request, UserDetailSerializer)
+        validated_data = self.check(request, UserLoginSerializer)
         auth_result = super(TokenObtainPairView, self).post(request, args, kwargs)
         if auth_result.status_code != status.HTTP_200_OK:
             raise APIException('Доступ запрещен', status.HTTP_403_FORBIDDEN)
-        user = get_user_model().objects.filter(email=validated_data['email']).first()
-        user.last_login = timezone.now()
-        user.save()
-        result = dict(status='ok')
-        result['tokens'] = auth_result.data
+        UserService.register_login(validated_data)
+        result = dict(
+            status='ok',
+            tokens=auth_result.data,
+        )
         return Response(result, status.HTTP_200_OK)
 
 
@@ -101,19 +93,46 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_302_FOUND, headers={'Location': BASE_URL})
 
 
-class UserDetailView(RetrieveAPIView):
+class UserDetailView(ValidateMixin, RetrieveAPIView):
     """
-    Подробная информация о пользователе, включая профиль и курсы, на которые он записан
+    Подробная информация о пользователе, включая профиль
     """
+    parser_classes = (JSONParser,)
     serializer_class = UserDetailSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return get_user_model().objects.select_related('profile').filter(pk=self.request.user.pk)
+
+    def get(self, request, *args, **kwargs):
+        user_detail = super().get(request, args, kwargs)
+        return Response(
+            {
+                'status': 'ok',
+                'user_detail': user_detail.data
+            },
+            status.HTTP_200_OK
+        )
+
+
+class UserUpdateView(ValidateMixin, APIView):
+    """
+    Обновление профиля пользователя
+    """
+    parser_classes = (JSONParser,)
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return get_user_model().objects.select_related('profile').filter(pk=self.kwargs['pk'])
 
-    def get(self, request, *args, **kwargs):
-        user_detail = super().get(request, args, kwargs)
+    def put(self, request):
+        validated_data = self.check(request, ProfileSerializer)
+        user = UserService.update_profile(request.user.pk, validated_data)
+        serializer = UserDetailSerializer(user)
         return Response(
-            {'status': 'ok', 'user_detail': user_detail.data},
+            {
+                'status': 'ok',
+                'user_detail': serializer.data
+            },
             status.HTTP_200_OK
         )

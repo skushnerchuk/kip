@@ -1,5 +1,3 @@
-import logging
-
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from rest_framework import status
@@ -50,7 +48,6 @@ class EmailMixin:
         """
         Отправка письма с ссылкой для подтверждения почты
         :param user: Объект пользователя
-        :return: None
         """
         # Письмо с подтверждением отправляем только в том случае, если это не отладка и домен не example.com
         # так как этот домен используется для заполнения тестовыми данными
@@ -65,7 +62,7 @@ class EmailMixin:
 
 class ObjectExistMixin:
     """
-    Проверка что объект уже существует в базе
+    Проверка что объект (или несколько), соответствующий фильтру, уже существует в базе
     """
 
     @staticmethod

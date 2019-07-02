@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -19,39 +20,28 @@ class CoursesCategory(models.Model):
         return self.name
 
 
-class Course(models.Model):
+class Courses(models.Model):
     """
-    Курс обучения
-    -------------
-    В рамках одной категории курсы должны иметь разные имена.
-    Одному и тому же курсу могут соответствовать несколько расписаний, то есть
-    его могут проходить несколько групп одновременно, возможно, со сдвигом начала
-    обучения во времени. Логично предположить, что и программы групп могут несколько
-    отличаться, напрмер, если программа была уточнена, а предыдущие группы
-    обучение по ранее согласованной программе еще не закончили.
+    Категории курсов
     """
 
     class Meta:
         db_table = 'courses'
-        verbose_name = 'Курс'
-        verbose_name_plural = 'Курсы'
+        verbose_name = 'Наименование курса'
+        verbose_name_plural = 'Наименования курсов'
         app_label = 'kip_api'
         unique_together = ('category', 'name')
 
+    # Наименование курса (уникальное в рамках категории)
+    name = models.CharField(max_length=100, default='Новый курс')
+    # Категория, к которой относится курс
     category = models.ForeignKey(
         CoursesCategory,
         on_delete=models.CASCADE,
         verbose_name='Категория'
     )
-    # Наименование курса
-    name = models.CharField(max_length=255, verbose_name='Название')
     # Описание курса
     description = models.TextField(verbose_name='Описание', blank=True)
-    # Ссылка на документ с детальной прогаммой курса, БЕЗ привязки
-    # к расписанию.
-    # Учитывая высказывание выше о возможности изменения программы курса от группы к группе,
-    # конкретную программу курса также необходимо сохранять и в группе курса во избежание недоразумений.
-    detail_program = models.URLField(vebose_name='Ссылка на программу курса', blank=True)
 
     def __str__(self):
         return self.name
@@ -60,42 +50,78 @@ class Course(models.Model):
 class CourseGroup(models.Model):
     """
     Группа курса
+    -------------
+    Одному и тому же курсу могут соответствовать несколько расписаний, то есть
+    его могут проходить несколько групп одновременно, возможно, со сдвигом начала
+    обучения во времени. Логично предположить, что и программы групп могут несколько
+    отличаться, напрмер, если программа была уточнена, а предыдущие группы
+    обучение по ранее согласованной программе еще не закончили.
     """
 
     class Meta:
         db_table = 'courses_groups'
         verbose_name = 'Группа курса'
-        verbose_name_plural = 'Группы курса'
-        unique_together = ('course', 'name')
+        verbose_name_plural = 'Группы курсов'
         app_label = 'kip_api'
+        unique_together = ('course', 'name')
 
-    # Курс к которому относится группа
     course = models.ForeignKey(
-        Course,
+        Courses,
         on_delete=models.CASCADE,
-        verbose_name=_('Курс'),
-        related_name='course_id'
+        verbose_name='Курс'
     )
     # Наименование группы
-    name = models.CharField(
-        max_length=255,
-        verbose_name=_('Название группы')
+    name = models.CharField(max_length=255, verbose_name='Название')
+    # Ссылка на документ с детальной прогаммой курса
+    detail_program = models.URLField(verbose_name='Ссылка на программу курса', blank=True)
+    # Краткое недельное расписание занятий
+    # Например: 6 академических часов в неделю, 2 занятия, вт. и чт, с 20:00
+    short_schedule = models.CharField(max_length=255, blank=True, verbose_name='Недельное расписание')
+    # Кто участвует в этой группе
+    participants = models.ManyToManyField(
+        get_user_model(),
+        through='Participation',
+        related_name='courses_groups',
     )
-    # Ссылка на программу курса для этой группы
-    detail_program = models.URLField(
-        vebose_name='Ссылка на программу курса', blank=True
+
+    def __str__(self):
+        return self.name
+
+
+class Participation(models.Model):
+    """
+    Участие пользователей в группах обучения
+    """
+
+    ROLE_STUDENT = 1
+    ROLE_TEACHER = 2
+
+    ROLE_CHOICES = (
+        (ROLE_STUDENT, _('Студент')),
+        (ROLE_TEACHER, _('Преподаватель'))
     )
-    # Открыта ли эта группа для набора. В рамках курса в один момент может быть открыто
-    # несколько групп, которые, например, имеют разное расписание
-    is_opened = models.BooleanField(default=False, verbose_name='Открыта для набора')
-    # Предполагаемое недельное расписание занятий группы. Носит чисто информативный характер,
-    # на основании чего пользователь может выбрать группу с подходящим для него расписанием
-    weekly_schedule = models.CharField(max_length=255, blank=True, verbose_name='Недельное расписание')
+
+    class Meta:
+        db_table = 'participations'
+        verbose_name = 'Участие в группах'
+        verbose_name_plural = 'Участие в группах'
+        app_label = 'kip_api'
+        unique_together = ('user', 'group')
+
+    # Пользователь
+    user = models.ForeignKey(get_user_model(), related_name='participations', on_delete=models.CASCADE)
+    # Учебная группа курса
+    group = models.ForeignKey(CourseGroup, related_name='participations', on_delete=models.CASCADE)
+    # Роль пользователя в группе
+    role = models.IntegerField(choices=ROLE_CHOICES, default=ROLE_STUDENT)
+
+    def __str__(self):
+        return '{}, {}'.format(self.user, self.group)
 
 
 class Lesson(models.Model):
     """
-    Занятие в рамках текущей группы курса
+    Занятие в рамках группы курса
     Так как занятия от курса к курсу могут меняться, то логично
     их привязывать не к курсу, а к группе курса
     """
@@ -104,12 +130,11 @@ class Lesson(models.Model):
         db_table = 'lessons'
         verbose_name = 'Урок'
         verbose_name_plural = 'Уроки'
-        unique_together = ('course', 'name')
+        unique_together = ('group', 'name')
         app_label = 'kip_api'
 
-    # Модуль к которому относится занятие
-    module = models.ForeignKey('CourseModule', on_delete=models.CASCADE, verbose_name=_('Курс'),
-                               related_name='course_id')
+    # Группа, к которой относится урок
+    group = models.ForeignKey(CourseGroup, on_delete=models.CASCADE, verbose_name=_('Учебная группа'))
     # Краткое наименование урока
     name = models.CharField(max_length=255, verbose_name=_('Название'))
     # Полное описание урока
@@ -120,35 +145,71 @@ class Lesson(models.Model):
     start = models.DateTimeField(verbose_name=_('Начало'), blank=True)
     # Длительность в условных часах (например академических или астрономических)
     duration = models.IntegerField(verbose_name=_('Длительность'), default=2)
+    # Ссылка на площадку вебинара
+    meeting_url = models.URLField(verbose_name=_('Ссылка на вебинар'), null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return '{}: {}'.format(self.group, self.name)
 
 
-class CourseModule:
+class UserLessons(models.Model):
     """
-    Модуль курса для конкретной группы
-    Вынесен в отдельную сущность, так как расписание может уточняться от
-    группы к группе
-    ----------------------------------
-    Модуль - минимальная единица, которая может быть оплачена обучающимся
-    При оплате всего курса для оплатившего все модули помечаются как оплаченные
-    В теории модуль может иметь только 1 занятия, но логичнее ставить в модуль
-    столько занятий, чтобы с учетом недельного расписания в нем находился условный
-    месяц (например, 4 недели), за исключением определенных ситуаций, например,
-    подготовки выпускного проекта, когда имеет смысл 1 или 2 занятия за этот период.
-    Стоимость модуля рассчитывается исходя из стоимости всего курса.
+    Связь уроков с учениками
+    По этой таблице определяется, разрешен ли доступ ученика к уроку, сдано или нет домашнее задание
     """
+
+    # Задание не сдано
+    HOMEWORK_NOT_SUBMITTED = 1
+    # Задание отправлено на доработку после проверки
+    HOMEWORK_REJECTED = 1
+    # Задание принято
+    HOMEWORK_ACCEPTED = 2
+    # Задание отправлено на проверку
+    HOMEWORK_SENT_FOR_REVIEW = 3
+    # Задание принято на проверку
+    HOMEWORK_ON_REVIEW = 4
+    # Задание не задано
+    HOMEWORK_NOT_EXIST = 5
+
+    HOMEWORK_CHOICES = (
+        (HOMEWORK_NOT_EXIST, _('Не задано')),
+        (HOMEWORK_NOT_SUBMITTED, _('Не сдано')),
+        (HOMEWORK_REJECTED, _('Отправлено на доработку')),
+        (HOMEWORK_ACCEPTED, _('Принято')),
+        (HOMEWORK_SENT_FOR_REVIEW, _('Отправлено на проверку')),
+        (HOMEWORK_ON_REVIEW, _('Принято на проверку')),
+    )
 
     class Meta:
-        db_table = 'modules'
-        verbose_name = 'Модуль занятий'
-        verbose_name_plural = 'Модули занятий'
+        db_table = 'lessons_status'
+        verbose_name = ''
+        verbose_name_plural = 'Занятия пользователей'
+        app_label = 'kip_api'
+        unique_together = ('user', 'lesson')
 
-    # Курс к которому относится модуль
-    course = models.ForeignKey(
-        CourseGroup, on_delete=models.CASCADE,
-        verbose_name=_('Группа курса'), related_name='group_id'
+    # Пользователь
+    user = models.ForeignKey(
+        get_user_model(),
+        related_name='lessons_status',
+        on_delete=models.CASCADE,
+        verbose_name=_('Пользователь')
     )
-    # Наименование модуля
-    name = models.CharField(max_length=255, verbose_name=_('Название модуля'))
+    # Урок в рамках группы курса
+    lesson = models.ForeignKey(
+        Lesson,
+        related_name='lessons_status',
+        on_delete=models.CASCADE,
+        verbose_name=_('Урок')
+    )
+    # Домашнее задание
+    homework = models.IntegerField(
+        choices=HOMEWORK_CHOICES,
+        default=HOMEWORK_NOT_SUBMITTED,
+        verbose_name=_('Домашнее задание')
+    )
+    # Урок оплачен. Ссылка на вебинар и сдачу домашнего задания будет доступна
+    # пользователю только если урок оплачен
+    paid = models.BooleanField(default=False, verbose_name=_('оплачено'))
+
+    def __str__(self):
+        return '{} {}'.format(self.user, self.lesson)

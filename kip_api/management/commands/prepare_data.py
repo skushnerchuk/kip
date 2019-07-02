@@ -1,37 +1,39 @@
+from datetime import date
+
 import factory
 from django.core.management.base import BaseCommand, no_translations
 
-from kip_api.models.courses import (
-    CoursesCategory, Course, User, Profile, Lesson
+from kip_api.models import (
+    User, Profile
 )
 
 
-class CategoryFactory(factory.django.DjangoModelFactory):
-    """
-    Фабрика категорий курсов
-    Имена категорий генерируются по шаблону: Category_N
-    """
-
-    class Meta:
-        model = CoursesCategory
-
-    name = factory.Sequence(lambda n: 'Category {}'.format(n))
-
-
-class CourseFactory(factory.django.DjangoModelFactory):
-    """
-    Фабрика курсов
-    Имена курсов генерируются по шаблону: Course_N
-    Описание заполняется случайным текстом
-    """
-
-    class Meta:
-        model = Course
-
-    # Должен быть передан параметр category, который указывает к какой категории относится курс
-    category = factory.SelfAttribute('category')
-    name = factory.Sequence(lambda n: 'Course {}'.format(n))
-    description = factory.Faker('text')
+# class CategoryFactory(factory.django.DjangoModelFactory):
+#     """
+#     Фабрика категорий курсов
+#     Имена категорий генерируются по шаблону: Category_N
+#     """
+#
+#     class Meta:
+#         model = CoursesCategory
+#
+#     name = factory.Sequence(lambda n: 'Category {}'.format(n))
+#
+#
+# class CourseFactory(factory.django.DjangoModelFactory):
+#     """
+#     Фабрика курсов
+#     Имена курсов генерируются по шаблону: Course_N
+#     Описание заполняется случайным текстом
+#     """
+#
+#     class Meta:
+#         model = Course
+#
+#     # Должен быть передан параметр category, который указывает к какой категории относится курс
+#     category = factory.SelfAttribute('category')
+#     name = factory.Sequence(lambda n: 'Course {}'.format(n))
+#     description = factory.Faker('text')
 
 
 class ProfileFactory(factory.django.DjangoModelFactory):
@@ -44,12 +46,14 @@ class ProfileFactory(factory.django.DjangoModelFactory):
 
     user = factory.SubFactory('kip_api.factories.UserFactory', profile=None)
     biography = factory.Faker('text')
+    birth_date = date.today()
 
 
 class UserFactory(factory.django.DjangoModelFactory):
     """
-    Фабрика пользователей. Отключаем также сигнал post_save, так как профили мы будем создавать сами,
-    и письма отправлять никому не хотим
+    Фабрика пользователей. Если есть необходимость изменить домен почты,
+    то следует внести соответствующие изменения в EmailMixin, чтобы избежать
+    отправки почты для тестовых аккаунтов
     """
 
     class Meta:
@@ -60,21 +64,21 @@ class UserFactory(factory.django.DjangoModelFactory):
     profile = factory.RelatedFactory(ProfileFactory, 'user')
 
 
-class LessonFactory(factory.django.DjangoModelFactory):
-    """
-    Фабрика уроков
-    Имя урока генерируется по шаблону Lesson_N
-    """
-
-    class Meta:
-        model = Lesson
-
-    # Должен быть передан параметр course, который указывает к какому курсу относится урок
-    course = factory.SelfAttribute('course')
-
-    number = factory.Sequence(lambda n: '{}'.format(n))
-    description = factory.Faker('text')
-    name = factory.Sequence(lambda n: 'Lesson {}'.format(n))
+# class LessonFactory(factory.django.DjangoModelFactory):
+#     """
+#     Фабрика уроков
+#     Имя урока генерируется по шаблону Lesson_N
+#     """
+#
+#     class Meta:
+#         model = Lesson
+#
+#     # Должен быть передан параметр course, который указывает к какому курсу относится урок
+#     course = factory.SelfAttribute('course')
+#
+#     number = factory.Sequence(lambda n: '{}'.format(n))
+#     description = factory.Faker('text')
+#     name = factory.Sequence(lambda n: 'Lesson {}'.format(n))
 
 
 class Command(BaseCommand):
@@ -108,35 +112,35 @@ class Command(BaseCommand):
         for c in range(count):
             UserFactory()
 
-    @staticmethod
-    def generate_categories(count):
-        CoursesCategory.objects.all().delete()
-        for c in range(count):
-            CategoryFactory()
-
-    @staticmethod
-    def generate_courses(count):
-        categories = CoursesCategory.objects.all()
-        for c in categories:
-            for i in range(count):
-                CourseFactory(category=c)
-
-    @staticmethod
-    def generate_lessons(count):
-        courses = Course.objects.all()
-        for c in courses:
-            # Отсчет номеров уроков ведем с 1
-            LessonFactory.reset_sequence(1)
-            for i in range(count):
-                LessonFactory(course=c)
-            # Начинаем нумировать уроки заново
-            LessonFactory.reset_sequence(1)
+    # @staticmethod
+    # def generate_categories(count):
+    #     CoursesCategory.objects.all().delete()
+    #     for c in range(count):
+    #         CategoryFactory()
+    #
+    # @staticmethod
+    # def generate_courses(count):
+    #     categories = CoursesCategory.objects.all()
+    #     for c in categories:
+    #         for i in range(count):
+    #             CourseFactory(category=c)
+    #
+    # @staticmethod
+    # def generate_lessons(count):
+    #     courses = Course.objects.all()
+    #     for c in courses:
+    #         # Отсчет номеров уроков ведем с 1
+    #         LessonFactory.reset_sequence(1)
+    #         for i in range(count):
+    #             LessonFactory(course=c)
+    #         # Начинаем нумировать уроки заново
+    #         LessonFactory.reset_sequence(1)
 
     @staticmethod
     def clear():
         print('Clear ALL database data')
         User.objects.all().delete()
-        CoursesCategory.objects.all().delete()
+        # CoursesCategory.objects.all().delete()
 
     @no_translations
     def handle(self, *args, **options):
@@ -148,15 +152,15 @@ class Command(BaseCommand):
             # Всегда очищаем базу перед заполнением новыми данными
             self.clear()
             users_count = options['users']
-            categories_count = options['categories']
-            courses_count = options['courses']
-            lessons_count = options['lessons']
+            # categories_count = options['categories']
+            # courses_count = options['courses']
+            # lessons_count = options['lessons']
 
             print('Generating {} users...'.format(users_count))
             self.generate_users(users_count)
-            print('Generating {} categories...'.format(categories_count))
-            self.generate_categories(categories_count)
-            print('Generating {} courses per category...'.format(courses_count))
-            self.generate_courses(courses_count)
-            print('Generating {} lessons per course...'.format(lessons_count))
-            self.generate_lessons(lessons_count)
+            # print('Generating {} categories...'.format(categories_count))
+            # self.generate_categories(categories_count)
+            # print('Generating {} courses per category...'.format(courses_count))
+            # self.generate_courses(courses_count)
+            # print('Generating {} lessons per course...'.format(lessons_count))
+            # self.generate_lessons(lessons_count)

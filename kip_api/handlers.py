@@ -24,6 +24,7 @@ class ErrorHandler(LoggingMixin):
             'apiexception': self.api_exception_handler,
             'http404': self.http_404_handler,
             'validationerror': self.validation_error_handler,
+            'parseerror': self.validation_error_handler,
         }
         response = exception_handler(exc, context)
         exception_class = exc.__class__.__name__.lower()
