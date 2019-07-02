@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
 from .views.courses import (
-    CourseSignupView
+    CourseSignupView, UserGroupsView
 )
 from .views.user import (
     CreateUserView, ConfirmEmailView, LoginView, UserDetailView, LogoutView,
@@ -28,6 +28,8 @@ urlpatterns = [
     path('user/', UserDetailView.as_view(), name='user_detail'),
     # Обновление сведений о пользователе
     path('user/update/', UserUpdateView.as_view(), name='user_update'),
+    # Просмотр курсов, на которые записан пользователь
+    path('user/groups/', UserGroupsView.as_view(), name='user_courses'),
 
     # Работа с курсами
 

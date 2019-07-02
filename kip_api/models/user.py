@@ -66,7 +66,6 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = UserManager()
-
     # Учебные группы, где участвует пользователь
     groups = models.ManyToManyField(
         to='CourseGroup',

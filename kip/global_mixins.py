@@ -21,6 +21,9 @@ class LoggingMixin:
         self.data = dict()
 
     def insert_log_record(self, log_record):
+        """
+        Формирование фиксированных полей записи лога
+        """
         self.data = dict()
         self.data['logger'] = self.logger_name
         self.data['fired'] = datetime.datetime.utcnow().strftime("%d-%m-%Y %H:%M:%S.%f")

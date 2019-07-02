@@ -11,6 +11,7 @@ class ErrorHandler(LoggingMixin):
     """
     Класс обработки ошибок и формирования ответов клиентам
     """
+
     def process(self, exc, context):
         self.exc = exc
         self.context = context

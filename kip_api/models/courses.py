@@ -22,7 +22,7 @@ class CoursesCategory(models.Model):
 
 class Courses(models.Model):
     """
-    Категории курсов
+    Курсы
     """
 
     class Meta:
@@ -70,9 +70,9 @@ class CourseGroup(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Курс'
     )
-    # Наименование группы
+    # Наименование группы (уникальное в рамках курса)
     name = models.CharField(max_length=255, verbose_name='Название')
-    # Ссылка на документ с детальной прогаммой курса
+    # Ссылка на документ с детальной программой курса
     detail_program = models.URLField(verbose_name='Ссылка на программу курса', blank=True)
     # Краткое недельное расписание занятий
     # Например: 6 академических часов в неделю, 2 занятия, вт. и чт, с 20:00
@@ -83,6 +83,8 @@ class CourseGroup(models.Model):
         through='Participation',
         related_name='courses_groups',
     )
+    # Обучение в этой группе закончено
+    closed = models.BooleanField(verbose_name='Обучение закончено', default=False)
 
     def __str__(self):
         return self.name
@@ -135,7 +137,7 @@ class Lesson(models.Model):
 
     # Группа, к которой относится урок
     group = models.ForeignKey(CourseGroup, on_delete=models.CASCADE, verbose_name=_('Учебная группа'))
-    # Краткое наименование урока
+    # Краткое наименование урока (уникальное в рамках текущей группы)
     name = models.CharField(max_length=255, verbose_name=_('Название'))
     # Полное описание урока
     description = models.TextField(verbose_name=_('Описание'))
@@ -154,12 +156,13 @@ class Lesson(models.Model):
 
 class UserLessons(models.Model):
     """
-    Связь уроков с учениками
+    Связь уроков группы с учениками
     По этой таблице определяется, разрешен ли доступ ученика к уроку, сдано или нет домашнее задание
     """
 
+    # Статусы домашних заданий
     # Задание не сдано
-    HOMEWORK_NOT_SUBMITTED = 1
+    HOMEWORK_NOT_SUBMITTED = 0
     # Задание отправлено на доработку после проверки
     HOMEWORK_REJECTED = 1
     # Задание принято
@@ -201,13 +204,13 @@ class UserLessons(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_('Урок')
     )
-    # Домашнее задание
+    # Статус домашнего задания
     homework = models.IntegerField(
         choices=HOMEWORK_CHOICES,
         default=HOMEWORK_NOT_SUBMITTED,
         verbose_name=_('Домашнее задание')
     )
-    # Урок оплачен. Ссылка на вебинар и сдачу домашнего задания будет доступна
+    # Урок оплачен или нет. Ссылка на вебинар и сдача домашнего задания будет доступна
     # пользователю только если урок оплачен
     paid = models.BooleanField(default=False, verbose_name=_('оплачено'))
 

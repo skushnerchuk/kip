@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from rest_framework import status
-from rest_framework.generics import RetrieveAPIView
+from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -14,9 +14,11 @@ from kip.settings import BASE_URL
 from kip_api.logic.user import UserService
 from kip_api.mixins import ValidateMixin
 from kip_api.serializers.user import (
-    UserLoginSerializer, UserDetailSerializer, ProfileSerializer
+    UserLoginSerializer, UserDetailSerializer, ProfileSerializer,
 )
+from kip_api.serializers.courses import UserCoursesSerializer
 from kip_api.utils import token_generator, APIException
+from kip_api.models.courses import Participation
 
 
 class ConfirmEmailView(APIView):
@@ -73,7 +75,12 @@ class LoginView(ValidateMixin, TokenObtainPairView):
             status='ok',
             tokens=auth_result.data,
         )
-        return Response(result, status.HTTP_200_OK)
+        # self.request.auth
+        return Response(
+            data=result,
+            status=status.HTTP_200_OK,
+            headers={'Authorization': 'Bearer {}'.format(auth_result.data['access'])}
+        )
 
 
 class LogoutView(APIView):
@@ -98,19 +105,17 @@ class UserDetailView(ValidateMixin, RetrieveAPIView):
     Подробная информация о пользователе, включая профиль
     """
     parser_classes = (JSONParser,)
-    serializer_class = UserDetailSerializer
     permission_classes = (IsAuthenticated,)
+    serializer_class = UserDetailSerializer
 
     def get_queryset(self):
-        return get_user_model().objects.select_related('profile').filter(pk=self.request.user.pk)
+        self.kwargs['pk'] = self.request.user.pk
+        return get_user_model().objects.select_related('profile').filter(pk=self.kwargs['pk'])
 
     def get(self, request, *args, **kwargs):
         user_detail = super().get(request, args, kwargs)
         return Response(
-            {
-                'status': 'ok',
-                'user_detail': user_detail.data
-            },
+            {'status': 'ok', 'user_detail': user_detail.data},
             status.HTTP_200_OK
         )
 
@@ -121,9 +126,6 @@ class UserUpdateView(ValidateMixin, APIView):
     """
     parser_classes = (JSONParser,)
     permission_classes = (IsAuthenticated,)
-
-    def get_queryset(self):
-        return get_user_model().objects.select_related('profile').filter(pk=self.kwargs['pk'])
 
     def put(self, request):
         validated_data = self.check(request, ProfileSerializer)
@@ -136,3 +138,19 @@ class UserUpdateView(ValidateMixin, APIView):
             },
             status.HTTP_200_OK
         )
+
+
+class UserCoursesView(ListAPIView):
+    """
+    Просмотр информации по группам, в которые записан пользователь
+    """
+    parser_classes = JSONParser
+    serializer_class = UserCoursesSerializer
+
+    def get_queryset(self):
+        return Participation.objects.select_related('group_id') \
+            .filter(user_id=self.request.user.pk, closed=False)
+
+    def get(self, request, *args, **kwargs):
+        items = super(ListAPIView, self).list(request, args, kwargs)
+        return Response({'status': 'ok', 'courses': items.data}, status.HTTP_200_OK)
