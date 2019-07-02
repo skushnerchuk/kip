@@ -2,9 +2,8 @@
 
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
 import django.utils.timezone
-import kip_api.models
+import kip_api.models.courses
 
 
 class Migration(migrations.Migration):
@@ -37,7 +36,7 @@ class Migration(migrations.Migration):
                 'db_table': 'users',
             },
             managers=[
-                ('objects', kip_api.models.UserManager()),
+                ('objects', kip_api.models.courses.UserManager()),
             ],
         ),
         migrations.CreateModel(

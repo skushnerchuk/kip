@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from kip_api.models import Course, Lesson
+from kip_api.models.courses import Course, Lesson
 
 
 class LessonlSerializer(serializers.ModelSerializer):
@@ -21,7 +21,7 @@ class LessonlSerializer(serializers.ModelSerializer):
 
 class CourseCreateSerializer(serializers.ModelSerializer):
     """
-    Сериализатор курса, включая данные по всем урокам
+    Сериализатор создания курса
     """
 
     class Meta:
@@ -31,6 +31,18 @@ class CourseCreateSerializer(serializers.ModelSerializer):
     category_id = serializers.IntegerField()
     name = serializers.CharField()
     description = serializers.CharField()
+
+
+class CourseDeleteSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор удаления курса
+    """
+
+    class Meta:
+        model = Course
+        fields = ('pk',)
+
+    pk = serializers.IntegerField()
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -46,6 +58,16 @@ class CourseSerializer(serializers.ModelSerializer):
     category = serializers.IntegerField()
     name = serializers.CharField()
     description = serializers.CharField()
+
+    def create(self, validated_data):
+        return Course(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('', instance.name)
+        instance.description = validated_data.get('', instance.description)
+        instance.detail_program = validated_data.get('', instance.detail_program)
+        instance.save()
+        return instance
 
 
 class CourseListSerializer(serializers.ModelSerializer):

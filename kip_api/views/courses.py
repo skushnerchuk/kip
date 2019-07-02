@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from kip_api.mixins import ValidateMixin, ObjectExistMixin
-from kip_api.models import Course, CoursesCategory
+from kip_api.models.courses import Course, CoursesCategory
 from kip_api.permissions import IsEmailConfirmed
 from kip_api.serializers.courses import (
     CourseListSerializer, CourseSerializer, CourseCreateSerializer
@@ -49,7 +49,7 @@ class CreateCourseView(ObjectExistMixin, ValidateMixin, APIView):
         category = validated_data['category_id']
 
         if not self.object_exists(CoursesCategory, {'pk': category}):
-            raise APIException('Такой категории не существует', status.HTTP_400_BAD_REQUEST)
+            raise APIException('Такой категории не существует', status.HTTP_404_NOT_FOUND)
 
         if self.object_exists(Course, {'name': name, 'category_id': category}):
             raise APIException('Курс с названием {} в указанной категории уже существует'.

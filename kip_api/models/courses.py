@@ -1,95 +1,6 @@
-from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-
-#
-# Пользователи курсов, а так же преподаватели
-#
-
-class UserManager(BaseUserManager):
-    """
-    Менеджер управления пользователями
-    """
-    use_in_migrations = True
-
-    def _create_user(self, email, password, **extra_fields):
-        if not email:
-            raise ValueError('The given email must be set')
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_user(self, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', False)
-        extra_fields.setdefault('is_superuser', False)
-        return self._create_user(email, password, **extra_fields)
-
-    def create_superuser(self, email, password, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
-        return self._create_user(email, password, **extra_fields)
-
-
-class User(AbstractUser):
-    """
-    Собственная модель пользователя
-    """
-
-    class Meta:
-        db_table = 'users'
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
-
-    # Логин гасим - он нам не понадобиться, вход будет по почте
-    username = None
-    # Делаем почту уникальным полем
-    email = models.EmailField(_('адрес'), unique=True)
-    email_confirmed = models.BooleanField(_('почта подтверждена'), blank=False, default=False)
-    # Группы курсов, на которые записан пользователь
-    # Теперь логин - это почта
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
-
-    # Пользователь не может участвовать одновременно более чем в одной группе курса
-    groups = models.ManyToManyField('CourseGroup', blank=True)
-
-    objects = UserManager()
-
-    def __str__(self):
-        return self.email
-
-
-class Profile(models.Model):
-    """
-    Профиль пользователя
-    """
-
-    class Meta:
-        db_table = 'profiles'
-        verbose_name = 'Профиль'
-        verbose_name_plural = 'Профили'
-        app_label = 'kip_api'
-
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    # Дата рождения
-    birth_date = models.DateField(_('Дата рождения'), null=True, blank=True)
-    # Информация о себе (заполняет пользователь)
-    biography = models.TextField(_('О себе'), blank=True)
-
-    def __str__(self):
-        return 'Профиль {}'.format(self.user.email)
-
-
-#
-# Собственно курсы и расписание
-#
 
 class CoursesCategory(models.Model):
     """
@@ -114,7 +25,7 @@ class Course(models.Model):
     -------------
     В рамках одной категории курсы должны иметь разные имена.
     Одному и тому же курсу могут соответствовать несколько расписаний, то есть
-    его могут проходить несколько групп одновременно, возможно, со сдвижкой начала
+    его могут проходить несколько групп одновременно, возможно, со сдвигом начала
     обучения во времени. Логично предположить, что и программы групп могут несколько
     отличаться, напрмер, если программа была уточнена, а предыдущие группы
     обучение по ранее согласованной программе еще не закончили.
@@ -136,11 +47,10 @@ class Course(models.Model):
     name = models.CharField(max_length=255, verbose_name='Название')
     # Описание курса
     description = models.TextField(verbose_name='Описание', blank=True)
-    # Ссылка на документс детальной прогаммой курса, БЕЗ привязки
+    # Ссылка на документ с детальной прогаммой курса, БЕЗ привязки
     # к расписанию.
-    # Учитывая высказывание выше о возможности изменения программы от курса группы к группе,
-    # конкретную программу курса также необходимо сохранять и в группе курса dj
-    # избежание недоразумений.
+    # Учитывая высказывание выше о возможности изменения программы курса от группы к группе,
+    # конкретную программу курса также необходимо сохранять и в группе курса во избежание недоразумений.
     detail_program = models.URLField(vebose_name='Ссылка на программу курса', blank=True)
 
     def __str__(self):
@@ -155,7 +65,7 @@ class CourseGroup(models.Model):
     class Meta:
         db_table = 'courses_groups'
         verbose_name = 'Группа курса'
-        verbose_name_plural = 'Группы курсов'
+        verbose_name_plural = 'Группы курса'
         unique_together = ('course', 'name')
         app_label = 'kip_api'
 
@@ -175,14 +85,12 @@ class CourseGroup(models.Model):
     detail_program = models.URLField(
         vebose_name='Ссылка на программу курса', blank=True
     )
-    # lessons расписание занятий этой группы
-
-
-class GroupSchedule(models.Model):
-    """
-    Расписание группы
-    """
-    pass
+    # Открыта ли эта группа для набора. В рамках курса в один момент может быть открыто
+    # несколько групп, которые, например, имеют разное расписание
+    is_opened = models.BooleanField(default=False, verbose_name='Открыта для набора')
+    # Предполагаемое недельное расписание занятий группы. Носит чисто информативный характер,
+    # на основании чего пользователь может выбрать группу с подходящим для него расписанием
+    weekly_schedule = models.CharField(max_length=255, blank=True, verbose_name='Недельное расписание')
 
 
 class Lesson(models.Model):
@@ -200,7 +108,8 @@ class Lesson(models.Model):
         app_label = 'kip_api'
 
     # Модуль к которому относится занятие
-    module = models.ForeignKey(CourseModule, on_delete=models.CASCADE, verbose_name=_('Курс'), related_name='course_id')
+    module = models.ForeignKey('CourseModule', on_delete=models.CASCADE, verbose_name=_('Курс'),
+                               related_name='course_id')
     # Краткое наименование урока
     name = models.CharField(max_length=255, verbose_name=_('Название'))
     # Полное описание урока
@@ -218,18 +127,28 @@ class Lesson(models.Model):
 
 class CourseModule:
     """
-    Модуль курса
+    Модуль курса для конкретной группы
+    Вынесен в отдельную сущность, так как расписание может уточняться от
+    группы к группе
+    ----------------------------------
+    Модуль - минимальная единица, которая может быть оплачена обучающимся
+    При оплате всего курса для оплатившего все модули помечаются как оплаченные
+    В теории модуль может иметь только 1 занятия, но логичнее ставить в модуль
+    столько занятий, чтобы с учетом недельного расписания в нем находился условный
+    месяц (например, 4 недели), за исключением определенных ситуаций, например,
+    подготовки выпускного проекта, когда имеет смысл 1 или 2 занятия за этот период.
+    Стоимость модуля рассчитывается исходя из стоимости всего курса.
     """
 
     class Meta:
         db_table = 'modules'
-        verbose_name = 'Модуль'
-        verbose_name_plural = 'Модули'
+        verbose_name = 'Модуль занятий'
+        verbose_name_plural = 'Модули занятий'
 
     # Курс к которому относится модуль
     course = models.ForeignKey(
-        Course, on_delete=models.CASCADE,
-        verbose_name=_('Курс'), related_name='course_id'
+        CourseGroup, on_delete=models.CASCADE,
+        verbose_name=_('Группа курса'), related_name='group_id'
     )
     # Наименование модуля
-    name = models.CharField(max_length=255, verbose_name=_('Название'))
+    name = models.CharField(max_length=255, verbose_name=_('Название модуля'))

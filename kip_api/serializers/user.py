@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from kip_api.models import Profile
+from kip_api.models.courses import Profile
 from .courses import CourseListSerializer
 
 

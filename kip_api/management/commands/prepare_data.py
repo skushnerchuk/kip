@@ -1,7 +1,7 @@
 import factory
 from django.core.management.base import BaseCommand, no_translations
 
-from kip_api.models import (
+from kip_api.models.courses import (
     CoursesCategory, Course, User, Profile, Lesson
 )
 

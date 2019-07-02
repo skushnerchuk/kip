@@ -2,14 +2,14 @@
 
 from django.contrib import admin
 
-from . import models
+from kip_api.models import courses
 
 MODELS = [
-    models.CoursesCategory,
-    models.Course,
-    models.Lesson,
-    models.User,
-    models.Profile,
+    courses.CoursesCategory,
+    courses.Course,
+    courses.Lesson,
+    courses.User,
+    courses.Profile,
 ]
 
 for model in MODELS:

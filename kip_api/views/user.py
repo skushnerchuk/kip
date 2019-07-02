@@ -13,7 +13,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from kip.settings import BASE_URL
 from kip_api.mixins import ValidateMixin, ObjectExistMixin, EmailMixin
-from kip_api.models import Profile
+from kip_api.models.courses import Profile
 from kip_api.serializers.user import UserDetailSerializer
 from kip_api.utils import token_generator, APIException
 
