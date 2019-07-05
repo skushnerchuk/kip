@@ -78,8 +78,8 @@ class UserService(ObjectExistMixin, EmailMixin):
 
         # Возникновение 404 тут маловероятно, но все-таки возможно
         user = get_object_or_404(User, pk=pk)
-        # Не разрешаем записываться на курс повторно
-        if self.object_exists(Participation, {'user': pk, 'group': group_id}):
+        # Не разрешаем записываться на курс повторно, если пользователь состоит в открытой группе
+        if self.object_exists(Participation, {'user': pk, 'group': group_id, 'closed': False}):
             raise APIException('Вы уже записаны на этот курс', status.HTTP_400_BAD_REQUEST)
         group = get_object_or_404(CourseGroup, pk=group_id)
         # Получаем все уроки для данной группы курса
