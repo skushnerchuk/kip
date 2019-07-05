@@ -1,7 +1,10 @@
 FROM python:3.7-alpine
 
-LABEL version="1.0"
-LABEL maintainer="Sergey Kushnerchuk"
+ARG VERSION
+ARG MAINTAINER
+
+LABEL version=$VERSION
+LABEL maintainer=$MAINTAINER
 
 WORKDIR /app
 
