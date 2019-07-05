@@ -27,6 +27,7 @@ class LoggingMixin:
         self.data = dict()
         self.data['logger'] = self.logger_name
         self.data['fired'] = datetime.datetime.utcnow().strftime("%d-%m-%Y %H:%M:%S.%f")
+        # В log_record всегда ожидается словарь
         if isinstance(log_record, dict):
             self.data.update(log_record)
         self.data = json.dumps(self.data, ensure_ascii=False)

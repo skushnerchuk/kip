@@ -1,7 +1,8 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from rest_framework import status
 
 from kip_api.mixins import ObjectExistMixin, EmailMixin
@@ -41,7 +42,7 @@ class UserService(ObjectExistMixin, EmailMixin):
         :param data: данные из запроса
         """
         user = User.objects.filter(email=data['email']).first()
-        user.last_login = timezone.now()
+        user.last_login = datetime.utcnow()
         user.save()
 
     @staticmethod
