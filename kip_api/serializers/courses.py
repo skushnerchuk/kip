@@ -1,10 +1,8 @@
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from kip_api.models.courses import (
-    Participation, CourseGroup, Courses
+    CourseGroup, Courses, UserLessons, Lesson
 )
-from kip_api.serializers.user import UserDetailSerializer
 
 
 class CourseSignupSerializer(serializers.ModelSerializer):
@@ -56,3 +54,13 @@ class UserCoursesSerializer(serializers.ModelSerializer):
         fields = ['pk', 'name', 'course', 'short_schedule', 'detail_program']
 
     course = serializers.CharField()
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор уроков
+    """
+
+    class Meta:
+        model = Lesson
+        fields = ['name', 'description', 'number', 'start', 'duration']

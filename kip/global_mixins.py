@@ -24,7 +24,7 @@ class LoggingMixin:
         """
         Формирование фиксированных полей записи лога
         """
-        self.data = dict()
+        self.data.clear()
         self.data['logger'] = self.logger_name
         self.data['fired'] = datetime.datetime.utcnow().strftime("%d-%m-%Y %H:%M:%S.%f")
         # В log_record всегда ожидается словарь
