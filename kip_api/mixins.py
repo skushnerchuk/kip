@@ -48,7 +48,6 @@ class EmailMixin:
         """
         Отправка письма с ссылкой для подтверждения почты
         :param user: Объект пользователя
-        :return: None
         """
         # Письмо с подтверждением отправляем только в том случае, если это не отладка и домен не example.com
         # так как этот домен используется для заполнения тестовыми данными
@@ -63,14 +62,14 @@ class EmailMixin:
 
 class ObjectExistMixin:
     """
-    Проверка что объект уже существует в базе
+    Проверка что объект (или несколько), соответствующий фильтру, уже существует в базе
     """
 
     @staticmethod
-    def object_exists(model_class, filter):
+    def object_exists(model_class, filters):
         """
         :param model_class: Класс модели, по которой проводится проверка
-        :param filter: фильтры, упакованные в словарь
+        :param filters: фильтры, упакованные в словарь
         :return: True - объект или несколько существуют, False - не существуют
         """
-        return model_class.objects.filter(**filter).exists()
+        return model_class.objects.filter(**filters).exists()

@@ -10,7 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
+import logging
 import os
+import sys
 from datetime import timedelta
 
 from dotenv import load_dotenv
@@ -213,4 +215,23 @@ ADMIN_REORDER = (
     'kip_api',
     {'app': 'kip_api', 'models': ('auth.User',)},
     {'app': 'auth', 'models': ('kip_api.User', 'auth.Group')},
+)
+
+#
+# Все логи пишем в stdout. Так как работа приложения планируется в контейнере,
+# то логи будем собирать из контейнеров централизованно через FluentD
+#
+
+# Логи будем готовить сами, логи django нас не интересуют
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+}
+
+LOGGING_LEVEL = int(os.environ.get('LOGGING_LEVEL', logging.DEBUG))
+
+logging.basicConfig(
+    level=LOGGING_LEVEL,
+    handlers=[logging.StreamHandler(sys.stdout)],
+    format='%(message)s'
 )

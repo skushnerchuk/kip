@@ -3,6 +3,10 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 
+#
+# Участники курсов (студенты и преподаватели)
+#
+
 class UserManager(BaseUserManager):
     """
     Менеджер управления пользователями
@@ -15,6 +19,8 @@ class UserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
+        if 'is_superuser' in extra_fields:
+            user.email_confirmed = True
         user.save(using=self._db)
         return user
 
@@ -30,73 +36,10 @@ class UserManager(BaseUserManager):
             raise ValueError('Superuser must have is_staff=True.')
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
-        return self._create_user(email, password, **extra_fields)
-
-
-class CoursesCategory(models.Model):
-    """
-    Категории курсов
-    """
-
-    class Meta:
-        db_table = 'courses_categories'
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории курсов'
-        app_label = 'kip_api'
-
-    name = models.CharField(max_length=100, unique=True, default='Новая категория')
-
-    def __str__(self):
-        return self.name
-
-
-class Course(models.Model):
-    """
-    Курс обучения
-    """
-
-    class Meta:
-        db_table = 'courses'
-        verbose_name = 'Курс'
-        verbose_name_plural = 'Курсы'
-        app_label = 'kip_api'
-        unique_together = ('category', 'name')
-
-    category = models.ForeignKey(CoursesCategory, on_delete=models.CASCADE, verbose_name='Категория')
-    name = models.CharField(max_length=255, verbose_name='Название')
-    description = models.TextField(verbose_name='Описание')
-
-    def __str__(self):
-        return self.name
-
-
-class Lesson(models.Model):
-    """
-    Занятие в рамках курса
-    """
-
-    class Meta:
-        db_table = 'lessons'
-        verbose_name = 'Урок'
-        verbose_name_plural = 'Уроки'
-        unique_together = ('course', 'name')
-        app_label = 'kip_api'
-
-    # Курс к которому относится занятие
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name=_('Курс'), related_name='course_id')
-    # Краткое наименование урока
-    name = models.CharField(max_length=255, verbose_name=_('Название'))
-    # Полное описание урока
-    description = models.TextField(verbose_name=_('Описание'))
-    # Порядковый № урока в курсе
-    number = models.IntegerField(verbose_name=_('№ урока в курсе'))
-    # Дата и время начала занятия
-    start = models.DateTimeField(verbose_name=_('Начало'), blank=True, null=True)
-    # Длительность в условных часах (например академических или астрономических)
-    duration = models.IntegerField(verbose_name=_('Длительность'), default=2)
-
-    def __str__(self):
-        return self.name
+        # Для суперпользователя профиль создаем принудительно
+        user = self._create_user(email, password, **extra_fields)
+        Profile.objects.create(user=user)
+        return user
 
 
 class User(AbstractUser):
@@ -108,20 +51,28 @@ class User(AbstractUser):
         db_table = 'users'
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+        app_label = 'kip_api'
 
     # Логин гасим - он нам не понадобиться, вход будет по почте
     username = None
+    # Гасим first_name, last_name - у нас это будет в профиле
+    first_name = None
+    last_name = None
     # Делаем почту уникальным полем
     email = models.EmailField(_('адрес'), unique=True)
     email_confirmed = models.BooleanField(_('почта подтверждена'), blank=False, default=False)
-    # Курсы, на которые записан пользователь
-    courses = models.ManyToManyField(Course, blank=True)
-
     # Теперь логин - это почта
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     objects = UserManager()
+    # Учебные группы, где участвует пользователь
+    groups = models.ManyToManyField(
+        to='CourseGroup',
+        through='Participation',
+        related_name='users',
+        blank=True, verbose_name=_('Учебные группы')
+    )
 
     def __str__(self):
         return self.email
@@ -143,6 +94,12 @@ class Profile(models.Model):
     birth_date = models.DateField(_('Дата рождения'), null=True, blank=True)
     # Информация о себе (заполняет пользователь)
     biography = models.TextField(_('О себе'), blank=True)
+    # Имя
+    first_name = models.CharField(_('Имя'), max_length=50, null=True, blank=True)
+    # Отчество
+    middle_name = models.CharField(_('Отчество'), max_length=50, null=True, blank=True)
+    # Фамилия
+    last_name = models.CharField(_('Фамилия'), max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return 'Профиль {}'.format(self.user.email)
+        return 'Профиль: {}'.format(self.user.email)

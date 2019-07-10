@@ -1,68 +1,58 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from kip_api.models import Course, Lesson
+from kip_api.models.courses import (
+    Participation, CourseGroup, Courses
+)
+from kip_api.serializers.user import UserDetailSerializer
 
 
-class LessonlSerializer(serializers.ModelSerializer):
+class CourseSignupSerializer(serializers.ModelSerializer):
     """
-    Сериализатор урока
-    """
-
-    class Meta:
-        model = Lesson
-        fields = ('pk', 'name', 'description', 'number', 'start', 'duration',)
-
-    name = serializers.CharField()
-    description = serializers.CharField()
-    number = serializers.IntegerField()
-    start = serializers.DateTimeField(required=False)
-    duration = serializers.IntegerField()
-
-
-class CourseCreateSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор курса, включая данные по всем урокам
+    Сериализатор записи на курс
     """
 
     class Meta:
-        model = Course
-        fields = ('category_id', 'name', 'description',)
+        model = CourseGroup
+        fields = ('course_id',)
 
-    category_id = serializers.IntegerField()
-    name = serializers.CharField()
-    description = serializers.CharField()
+    course_id = serializers.IntegerField()
 
 
 class CourseSerializer(serializers.ModelSerializer):
     """
-    Сериализатор курса, включая данные по всем урокам
+    Сериализатор записи на курс
     """
 
     class Meta:
-        model = Course
-        fields = ('pk', 'category', 'name', 'description', 'lessons',)
+        model = Courses
+        fields = ('name',)
 
-    lessons = LessonlSerializer(source='course_id', many=True)
-    category = serializers.IntegerField()
     name = serializers.CharField()
-    description = serializers.CharField()
 
 
-class CourseListSerializer(serializers.ModelSerializer):
+class CourseGroupSerializer(serializers.ModelSerializer):
     """
-    Сериализатор курса, включая количество уроков в курсе
+    Сериализатор сведений о группе
     """
 
     class Meta:
-        model = Course
-        fields = ('pk', 'category', 'name', 'description', 'lessons_count')
+        model = CourseGroup
+        fields = ('pk', 'course', 'name',)
 
-    lessons_count = serializers.SerializerMethodField()
-
-    @staticmethod
-    def get_lessons_count(pk):
-        return Lesson.objects.filter(course=pk).count()
-
-    category = serializers.CharField()
+    pk = serializers.IntegerField()
+    course = serializers.CharField()
     name = serializers.CharField()
-    description = serializers.CharField()
+
+
+class UserCoursesSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор групп, в которые входит пользователь
+    Предоставляет краткую информацию для отображения списка
+    """
+
+    class Meta:
+        model = CourseGroup
+        fields = ['pk', 'name', 'course', 'short_schedule', 'detail_program']
+
+    course = serializers.CharField()

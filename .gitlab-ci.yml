@@ -1,21 +1,11 @@
-image: docker:latest
-
 variables:
-  VERSION: '1.0'
-
-services:
-  - docker:dind
-
-before_script:
-  - docker info
 
 stages:
   - build
 
 build:
   stage: build
+  tags:
+    - kip-backend
   script:
-    - docker build -t drcoyote/kip:backend_$VERSION -t drcoyote/kip:backend_latest .
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
-    - docker push $CI_REGISTRY_USER/kip:backend_$VERSION
-    - docker push $CI_REGISTRY_USER/kip:backend_latest
+    - echo 'BUILD'
