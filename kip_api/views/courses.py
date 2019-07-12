@@ -72,6 +72,7 @@ class CourseGroupScheduleView(ObjectExistMixin, APIView):
         # При этом хитрим - не говорим прямо что нельзя, а просто "нет такого"
         if not self.object_exists(Participation, filter) and not request.user.is_superuser:
             return APIException('Страница не найдена', status.HTTP_404_NOT_FOUND)
+        # Расписание выводим отсортированное по номерам уроков
         schedule = Lesson.objects.select_related('group').filter(group=group_id).order_by('number').all()
         serializer = LessonSerializer(schedule, many=True)
         return Response({'status': 'ok', 'schedule': serializer.data}, status.HTTP_200_OK)

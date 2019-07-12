@@ -40,7 +40,7 @@
       "name": "emails",
       "vhost": "/",
       "durable": true,
-      "auto_delete": true,
+      "auto_delete": false,
       "arguments": {}
     }
   ],
