@@ -10,7 +10,7 @@ import aio_pika
 
 # Для импорта глобальных миксин следует подключить этот файл сюда через символическую ссылку, например так:
 #   ln -s ~/dev/projects/kip/kip/global_mixins.py global_mixins.py
-from .global_mixins import LoggingMixin
+from common.global_mixins import LoggingMixin
 
 USER = os.getenv("RMQ_USER", "guest")
 PASSWORD = os.getenv("RMQ_PASSWORD", "guest")
