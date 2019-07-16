@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from kip_api.models.courses import (
-    CourseGroup, Courses, UserLessons, Lesson
+    CourseGroup, Courses, Lesson
 )
 
 

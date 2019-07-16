@@ -12,7 +12,6 @@ from kip_api.permissions import IsEmailConfirmed
 from kip_api.serializers.courses import (
     CourseSignupSerializer, UserCoursesSerializer, LessonSerializer
 )
-from kip_api.logic.user import UserService
 from kip_api.logic.course import CourseService
 from kip_api.models.courses import (
     CourseGroup, Participation, Lesson

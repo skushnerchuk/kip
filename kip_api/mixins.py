@@ -1,7 +1,6 @@
 import uuid
 import os
 import json
-import traceback
 
 from django.template.loader import render_to_string
 from rest_framework import status
@@ -47,6 +46,7 @@ class BusMixin(LoggingMixin):
     """
     Миксина работы с шиной данных
     """
+
     def send_message_to_bus(self, query_name, message):
         rq_host = os.getenv('RMQ_HOST', '127.0.0.1')
         rq_port = int(os.getenv('RMQ_PORT', 5672))
