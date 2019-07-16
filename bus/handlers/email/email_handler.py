@@ -16,14 +16,14 @@ import aio_pika
 
 from common.global_mixins import LoggingMixin
 
-USER = os.getenv("RMQ_USER", "guest")
-PASSWORD = os.getenv("RMQ_PASSWORD", "guest")
-HOST = os.getenv("RMQ_HOST", "127.0.0.1")
+USER = os.getenv('RMQ_USER', 'guest')
+PASSWORD = os.getenv('RMQ_PASSWORD', 'guest')
+HOST = os.getenv('RMQ_HOST', '127.0.0.1')
 
-EMAIL_HOST = os.getenv('EMAIL_HOST', '')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 25))
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'admin')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'admin')
 EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', 30))
 
 
@@ -59,7 +59,7 @@ class Email(LoggingMixin):
             self.info(message)
         except Exception as exc:
             # Конечно не хорошо ловить все подряд, но мы это делаем для
-            # того чтгобы все отправить в лог
+            # того чтобы все отправить в лог
             self.error(self.create_exception_record(exc))
 
 

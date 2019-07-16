@@ -93,7 +93,7 @@ class EmailMixin(BusMixin):
         message = {
             "uuid": str(uuid.uuid4()),
             "sender": "info@example.com",
-            "receivers": user.email,
+            "receivers": [user.email],
             "subject": subject,
             "body": body,
             "attachments": []
