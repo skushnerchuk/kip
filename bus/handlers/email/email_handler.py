@@ -1,3 +1,9 @@
+#
+# Обработчик событий отправки почты
+# Эксперимент в async/await
+# Мое предпочтение в синхронной парадигме - AMQPStorm
+#
+
 import asyncio
 import json
 import os
@@ -8,8 +14,6 @@ from email.mime.text import MIMEText
 
 import aio_pika
 
-# Для импорта глобальных миксин следует подключить этот файл сюда через символическую ссылку, например так:
-#   ln -s ~/dev/projects/kip/kip/global_mixins.py global_mixins.py
 from common.global_mixins import LoggingMixin
 
 USER = os.getenv("RMQ_USER", "guest")
@@ -33,8 +37,6 @@ class Email(LoggingMixin):
     def send_html_email(message):
         """
         Отправка писем в формате HTML
-        :param message:
-        :return:
         """
         msg = MIMEMultipart("alternative")
         msg['Subject'] = message['subject']
@@ -52,20 +54,14 @@ class Email(LoggingMixin):
         """
         try:
             message = json.loads(message_body)
+            self.send_html_email(message)
             # Прикапываем в логах отправленное письмо
             self.info(message)
-            self.send_html_email(message)
         except Exception as exc:
             # Конечно не хорошо ловить все подряд, но мы это делаем для
             # того чтгобы все отправить в лог
-            log_record = {
-                'traceback': {
-                    'stack': traceback.format_stack(),
-                    'data': traceback.format_exc()
-                },
-                'raw': '{}'.format(exc)
-            }
-            self.error(log_record)
+            self.error(self.create_exception_record(exc))
+            raise
 
 
 async def main(loop):

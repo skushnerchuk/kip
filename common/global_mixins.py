@@ -1,6 +1,7 @@
 import logging
 import datetime
 import json
+import traceback
 
 
 class LoggingMixin:
@@ -19,6 +20,15 @@ class LoggingMixin:
             self.__class__.__name__
         ])
         self.data = dict()
+
+    def create_exception_record(self, exc):
+        return {
+            'traceback': {
+                'stack': traceback.format_stack(),
+                'data': traceback.format_exc()
+            },
+            'raw': '{}'.format(exc)
+        }
 
     def insert_log_record(self, log_record):
         """
