@@ -61,7 +61,6 @@ class Email(LoggingMixin):
             # Конечно не хорошо ловить все подряд, но мы это делаем для
             # того чтгобы все отправить в лог
             self.error(self.create_exception_record(exc))
-            raise
 
 
 async def main(loop):
