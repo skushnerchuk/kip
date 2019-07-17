@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+
+  email:
+    image: registry.sk-developer.ru/kip_handler_email:latest
+    restart: always
+    container_name: kip_handler_email
+    env_file:
+      - ./bus/handlers/email/email.env
+    # На момент запуска сервисов контейнер fluentd уже должен быть запущен
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: api

@@ -54,7 +54,8 @@ class CreateUserView(ValidateMixin, APIView):
 
     def post(self, request):
         validated_data = self.check(request, UserDetailSerializer)
-        UserService.create(validated_data)
+        us = UserService()
+        us.create(validated_data)
         return Response({'status': 'ok'}, status.HTTP_201_CREATED)
 
 

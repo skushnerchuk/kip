@@ -189,15 +189,6 @@ SIMPLE_JWT = {
 
 AUTH_USER_MODEL = "kip_api.User"
 
-# TODO Убрать параметры после перевода отправки почты на Celery или RabbitMQ
-EMAIL_INFORMATOR = 'informator@example.com'
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 0))
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-EMAIL_TIMEOUT = 2
-
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'basic': {
