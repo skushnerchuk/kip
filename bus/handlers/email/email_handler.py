@@ -6,8 +6,8 @@
 
 import asyncio
 import json
-import os
 import logging
+import os
 import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -19,16 +19,10 @@ from dotenv import load_dotenv
 from common.global_mixins import LoggingMixin
 
 DEBUG = int(os.getenv('DEBUG', 1))
-LOGGING_LEVEL = int(os.getenv('LOGGING_LEVEL', logging.DEBUG))
-
-logging.basicConfig(
-    level=LOGGING_LEVEL,
-    handlers=[logging.StreamHandler(sys.stdout)],
-    format='%(message)s'
-)
-
 if DEBUG:
     load_dotenv('email.env')
+
+LOGGING_LEVEL = int(os.getenv('LOGGING_LEVEL', logging.DEBUG))
 USER = os.getenv('RMQ_USER', 'guest')
 PASSWORD = os.getenv('RMQ_PASSWORD', 'guest')
 HOST = os.getenv('RMQ_HOST', '127.0.0.1')
@@ -37,6 +31,12 @@ EMAIL_PORT = int(os.getenv('EMAIL_PORT', 25))
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'admin')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'admin')
 EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', 30))
+
+logging.basicConfig(
+    level=LOGGING_LEVEL,
+    handlers=[logging.StreamHandler(sys.stdout)],
+    format='%(message)s'
+)
 
 
 class Email(LoggingMixin):
