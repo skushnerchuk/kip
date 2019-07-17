@@ -7,19 +7,31 @@
 import asyncio
 import json
 import os
-import smtplib
-import traceback
+import logging
+import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import aio_pika
+import aiosmtplib
+from dotenv import load_dotenv
 
 from common.global_mixins import LoggingMixin
 
+DEBUG = int(os.getenv('DEBUG', 1))
+LOGGING_LEVEL = int(os.getenv('LOGGING_LEVEL', logging.DEBUG))
+
+logging.basicConfig(
+    level=LOGGING_LEVEL,
+    handlers=[logging.StreamHandler(sys.stdout)],
+    format='%(message)s'
+)
+
+if DEBUG:
+    load_dotenv('email.env')
 USER = os.getenv('RMQ_USER', 'guest')
 PASSWORD = os.getenv('RMQ_PASSWORD', 'guest')
 HOST = os.getenv('RMQ_HOST', '127.0.0.1')
-
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 25))
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'admin')
@@ -34,7 +46,7 @@ class Email(LoggingMixin):
     """
 
     @staticmethod
-    def send_html_email(message):
+    async def send_html_email(message):
         """
         Отправка писем в формате HTML
         """
@@ -43,18 +55,23 @@ class Email(LoggingMixin):
         msg['From'] = message['sender']
         msg['To'] = ', '.join(message['receivers'])
         msg.attach(MIMEText(message['body'], "html"))
-        with smtplib.SMTP(host=EMAIL_HOST, port=EMAIL_PORT) as s:
-            s.login(user=EMAIL_HOST_USER, password=EMAIL_HOST_PASSWORD)
-            s.sendmail(msg['From'], msg['To'], msg.as_string())
 
-    def send(self, message_body):
+        s = aiosmtplib.SMTP(hostname=EMAIL_HOST, port=EMAIL_PORT, loop=loop)
+        try:
+            await s.connect()
+            await s.login(username=EMAIL_HOST_USER, password=EMAIL_HOST_PASSWORD)
+            await s.sendmail(msg['From'], msg['To'], msg.as_string(), timeout=EMAIL_TIMEOUT)
+        finally:
+            s.close()
+
+    async def send(self, message_body):
         """
         Отправка письма
         :param message_body: строка с json-описанием сообщения
         """
         try:
             message = json.loads(message_body)
-            self.send_html_email(message)
+            await self.send_html_email(message)
             # Прикапываем в логах отправленное письмо
             self.info(message)
         except Exception as exc:
@@ -83,7 +100,7 @@ async def main(loop):
             async for message in queue_iter:
                 async with message.process():
                     e = Email()
-                    e.send(message.body)
+                    await e.send(message.body)
 
 
 if __name__ == "__main__":

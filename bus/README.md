@@ -17,6 +17,7 @@ docker-compose -f docker-compose-rabbitmq-cluster.yml up -d
 Последовательность действий по запуску каждого обработчика описана в его документации. Для запуска всех обработчиков
 на одной машине достаточно выполнить команду:
 ```bash
+docker network create rabbitmq-cluster
 docker-compose -f docker-compose-handlers.yml up -d
 ```
 
