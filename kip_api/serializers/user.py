@@ -51,8 +51,8 @@ class UserDetailSerializer(serializers.ModelSerializer):
         )
 
     profile = ProfileSerializer(required=False)
-    password = serializers.CharField(write_only=True)
-    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True, required=True)
+    email = serializers.EmailField(required=True)
     last_login = serializers.DateTimeField(required=False)
     date_joined = serializers.DateTimeField(required=False)
     email_confirmed = serializers.BooleanField(required=False)
