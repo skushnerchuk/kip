@@ -1,0 +1,8 @@
+[run]
+branch = True
+source = .
+omit =
+     */fluentd/*
+     */bus/cluster/*
+     */nginx/*
+     manage.py

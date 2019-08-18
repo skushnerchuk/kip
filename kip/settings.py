@@ -102,6 +102,11 @@ DATABASES = {
         'PORT': os.environ.get('DB_PORT', ''),
         'OPTIONS': {
             'init_command': 'ALTER DATABASE kip CHARACTER SET utf8 COLLATE utf8_general_ci'
+        },
+        # Настройки базы для автотестов
+        'TEST': {
+            'CHARSET': 'utf8',
+            'COLLATION': 'utf8_general_ci',
         }
     }
 }
