@@ -117,11 +117,3 @@ API:
 https://kip.sk-developer.ru/api/v1/
 ```
 </details>
-
-<details>
-<summary>Тестирование</summary>
-
-#### Тестирование отдельных модулей 
-
-#### Интеграционные тесты
-</details>

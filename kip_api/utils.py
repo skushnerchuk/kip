@@ -1,7 +1,6 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from django.db import models
 
 from kip.settings import BASE_URL, API_URL
 
