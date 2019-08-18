@@ -231,3 +231,6 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
     format='%(message)s'
 )
+# Гасим логи от factory_boy, они нам не нужны
+logging.getLogger('factory').setLevel(logging.ERROR)
+logging.getLogger('faker').setLevel(logging.ERROR)

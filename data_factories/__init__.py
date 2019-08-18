@@ -171,13 +171,11 @@ class LessonFactory(factory.django.DjangoModelFactory):
 
 
 def generate_users(count):
-    User.objects.all().delete()
     for c in range(count):
         UserFactory()
 
 
 def generate_categories(count):
-    CoursesCategory.objects.all().delete()
     for c in range(count):
         CategoryFactory()
 
