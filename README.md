@@ -141,4 +141,10 @@ https://kip.sk-developer.ru/api/v1/
 
 Уровень покрытия тестами показывается в специальной метке вверху документа
 
+Для определения уровня покрытия, а также обновление статистики сервиса **codecov.io** необходимо выполнить команды:
+```shell script
+coverage run manage.py test kip_api
+codecov --token=<codecov.io token>
+```
+
 </details>
