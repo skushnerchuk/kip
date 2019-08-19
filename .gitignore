@@ -126,3 +126,4 @@ dmypy.json
 
 .idea/
 **/**/*.env
+run_cover.sh
