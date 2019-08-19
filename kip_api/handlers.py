@@ -26,6 +26,7 @@ class ErrorHandler(LoggingMixin):
             'http404': self.http_404_handler,
             'validationerror': self.validation_error_handler,
             'parseerror': self.validation_error_handler,
+            'tokenerror': self.token_error_handler,
         }
         response = exception_handler(exc, context)
         exception_class = exc.__class__.__name__.lower()
@@ -73,6 +74,13 @@ class ErrorHandler(LoggingMixin):
     def validation_error_handler():
         return Response(
             {'status': 'error', 'message': 'Неверные входные данные'},
+            status.HTTP_400_BAD_REQUEST
+        )
+
+    @staticmethod
+    def token_error_handler():
+        return Response(
+            {'status': 'error', 'message': 'Передан неверный токен'},
             status.HTTP_400_BAD_REQUEST
         )
 

@@ -1,5 +1,9 @@
-from django.test import TestCase
+import json
+
+from django.conf import settings
 from django.db import models
+from django.test import TestCase
+from django.core import mail
 
 from data_factories import (
     generate_courses, generate_categories, generate_groups,
@@ -14,6 +18,10 @@ class BaseTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        # Запрещаем логгирование на время автотестов
+        settings.DISABLE_LOGGING = True
+        # Чистим тестовый ящик
+        mail.outbox = []
         generate_users(1)
         generate_categories(1)
         generate_courses(1)
@@ -67,3 +75,17 @@ class BaseTest(TestCase):
             absent, [],
             f'The field(s) <{",".join(absent)}> must be exist!'
         )
+
+    def check_request_by_status_code(self, endpoint, body, status_code):
+        """Проверяем ответ сервера на соответствие коду"""
+        resp = self.client.post(endpoint, data=body, content_type='application/json')
+        resp_content = json.loads(resp.content, encoding='utf8')
+        self.assertEqual(resp.status_code, status_code, resp_content.get('message'))
+
+    def check_endpoint_exist(self, endpoint):
+        resp = self.client.options(endpoint)
+        # При получении ошибки 401 тоже считаем, что endpoint существует, но требует авторизации
+        self.assertIn(resp.status_code, [200, 401])
+
+    def login(self, body):
+        return self.client.post('/api/v1/auth/login/', data=body, content_type='application/json')

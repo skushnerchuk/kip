@@ -1,9 +1,8 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from django.db import models
 
-from kip.settings import BASE_URL, API_URL
+from django.conf import settings
 
 
 class APIException(Exception):
@@ -37,7 +36,7 @@ def create_email_confirm_url(user_id, token):
     :return: ссылка
     """
     return '{}{}auth/confirm_email/{}/{}'.format(
-        BASE_URL, API_URL,
+        settings.BASE_URL, settings.API_URL,
         urlsafe_base64_encode(force_bytes(user_id)),
         token
     )

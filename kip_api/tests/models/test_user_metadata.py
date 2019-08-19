@@ -1,6 +1,5 @@
 from kip_api.tests.base_test import BaseTest
 from kip_api.models.user import User, Profile
-from data_factories import UserFactoryCustom
 
 
 class UserModelMetadataTest(BaseTest):

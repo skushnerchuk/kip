@@ -1,17 +1,18 @@
-import uuid
-import os
 import json
+import os
+import uuid
 
-from django.template.loader import render_to_string
-from rest_framework import status
 from amqpstorm import Connection
 from amqpstorm import Message, exception as StormEx
+from django.conf import settings
+from django.core import mail
+from django.template.loader import render_to_string
+from rest_framework import status
 
-from kip.settings import DEBUG
+from common.global_mixins import LoggingMixin
 from kip_api.utils import (
     token_generator, APIException, create_email_confirm_url
 )
-from common.global_mixins import LoggingMixin
 
 
 class ValidateMixin:
@@ -77,6 +78,15 @@ class EmailMixin(BusMixin):
     Работа с электронной почтой
     """
 
+    @staticmethod
+    def send_test_email(user):
+        """Отправка тестового сообщения в локальный ящик"""
+        token = token_generator.make_token(user)
+        url = create_email_confirm_url(user.pk, token)
+        subject = 'Подтвердите регистрацию аккаунта'
+        body = render_to_string('kip_api/email/confirm.html', {'url': url})
+        mail.send_mail(subject, body, settings.INFORMER_EMAIL, [user.email], fail_silently=False)
+
     def send_email_for_confirm(self, user):
         """
         Отправка письма с ссылкой для подтверждения почты
@@ -84,7 +94,11 @@ class EmailMixin(BusMixin):
         """
         # Письмо с подтверждением отправляем только в том случае, если это не отладка и домен не example.com
         # так как этот домен используется для заполнения тестовыми данными
-        if DEBUG and 'example.com' in user.email:
+        if settings.DEBUG and 'example.com' in user.email:
+            return
+        # При тестировании письма отправляем в локальный ящик
+        if settings.TESTING:
+            self.send_test_email(user)
             return
         token = token_generator.make_token(user)
         url = create_email_confirm_url(user.pk, token)
@@ -92,7 +106,7 @@ class EmailMixin(BusMixin):
         body = render_to_string('kip_api/email/confirm.html', {'url': url})
         message = {
             "uuid": str(uuid.uuid4()),
-            "sender": "info@example.com",
+            "sender": settings.INFORMER_EMAIL,
             "receivers": [user.email],
             "subject": subject,
             "body": body,
