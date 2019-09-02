@@ -34,54 +34,63 @@ class ErrorHandler(LoggingMixin):
             return handlers[exception_class]()
         result['message'] = '{}'.format(exc)
         if response:
-            return Response(result, status=response.status_code)
+            return Response(result, status=response.status_code,
+                            content_type='application/json')
         else:
-            return Response(result, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(result, status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            content_type='application/json')
 
     def not_authenticated_handler(self):
         return Response(
             {'status': 'error', 'message': '{}'.format(self.exc)},
-            status.HTTP_401_UNAUTHORIZED
+            status.HTTP_401_UNAUTHORIZED,
+            content_type='application/json'
         )
 
     @staticmethod
     def invalid_token_handler():
         return Response(
             {'status': 'error', 'message': 'Некорректный токен авторизации'},
-            status.HTTP_400_BAD_REQUEST
+            status.HTTP_400_BAD_REQUEST,
+            content_type='application/json'
         )
 
     def auth_failed_handler(self):
         return Response(
             {'status': 'error', 'message': self.exc.default_detail},
-            status.HTTP_403_FORBIDDEN
+            status.HTTP_403_FORBIDDEN,
+            content_type='application/json'
         )
 
     def api_exception_handler(self):
         return Response(
             {'status': 'error', 'message': '{}'.format(self.exc.message)},
-            self.exc.status
+            self.exc.status,
+            content_type='application/json'
         )
 
     @staticmethod
     def http_404_handler():
         return Response(
             {'status': 'error', 'message': 'Объект не найден'},
-            status.HTTP_404_NOT_FOUND
+            status.HTTP_404_NOT_FOUND,
+            content_type='application/json'
         )
 
     @staticmethod
     def validation_error_handler():
         return Response(
             {'status': 'error', 'message': 'Неверные входные данные'},
-            status.HTTP_400_BAD_REQUEST
+            status.HTTP_400_BAD_REQUEST,
+            content_type='application/json'
         )
 
     @staticmethod
     def token_error_handler():
         return Response(
             {'status': 'error', 'message': 'Передан неверный токен'},
-            status.HTTP_400_BAD_REQUEST
+            status.HTTP_400_BAD_REQUEST,
+            content_type='application/json'
         )
 
     def add_to_log(self):
