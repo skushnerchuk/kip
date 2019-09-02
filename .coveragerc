@@ -1,0 +1,12 @@
+[run]
+branch = True
+source = .
+omit =
+    manage.py
+    */tests/*
+    bus/*
+    common/*
+    data_factories/*
+    fluentd/*
+    nginx/*
+    */migrations/*

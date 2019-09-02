@@ -33,7 +33,7 @@ class Courses(models.Model):
         unique_together = ('category', 'name')
 
     # Наименование курса (уникальное в рамках категории)
-    name = models.CharField(max_length=100, default='Новый курс')
+    name = models.CharField(verbose_name='Наименование', max_length=100, default='Новый курс')
     # Категория, к которой относится курс
     category = models.ForeignKey(
         CoursesCategory,
@@ -185,7 +185,7 @@ class UserLessons(models.Model):
 
     class Meta:
         db_table = 'lessons_status'
-        verbose_name = ''
+        verbose_name = 'Занятия пользователей'
         verbose_name_plural = 'Занятия пользователей'
         app_label = 'kip_api'
         unique_together = ('user', 'lesson')

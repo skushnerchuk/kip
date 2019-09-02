@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from kip.settings import BASE_URL
+from django.conf import settings
 from kip_api.logic.user import UserService
 from kip_api.mixins import ValidateMixin
 from kip_api.serializers.user import (
@@ -40,7 +40,10 @@ class ConfirmEmailView(APIView):
         if user and token_generator.check_token(user, token):
             user.email_confirmed = True
             user.save()
-            return Response(status=status.HTTP_302_FOUND, headers={'Location': BASE_URL})
+            return Response(
+                status=status.HTTP_302_FOUND,
+                headers={'Location': settings.BASE_URL}
+            )
         # TODO Заменить на редирект на страницу с соответствующим сообщением
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -76,7 +79,6 @@ class LoginView(ValidateMixin, TokenObtainPairView):
             status='ok',
             tokens=auth_result.data,
         )
-        # self.request.auth
         return Response(
             data=result,
             status=status.HTTP_200_OK,
@@ -98,7 +100,7 @@ class LogoutView(APIView):
         tokenb64 = request.data['token']
         token = RefreshToken(tokenb64)
         token.blacklist()
-        return Response(status=status.HTTP_302_FOUND, headers={'Location': BASE_URL})
+        return Response(status=status.HTTP_302_FOUND, headers={'Location': settings.BASE_URL})
 
 
 class UserDetailView(ValidateMixin, RetrieveAPIView):

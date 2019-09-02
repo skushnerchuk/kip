@@ -3,6 +3,8 @@ import datetime
 import json
 import traceback
 
+from django.conf import settings
+
 
 class LoggingMixin:
     """
@@ -43,25 +45,37 @@ class LoggingMixin:
         self.data = json.dumps(self.data, ensure_ascii=False)
 
     def warning(self, log_record, *args, **kwargs):
+        if settings.DISABLE_LOGGING:
+            return
         self.insert_log_record(log_record)
         return self.logger.warning(self.data, *args, **kwargs)
 
     def error(self, log_record, *args, **kwargs):
+        if settings.DISABLE_LOGGING:
+            return
         self.insert_log_record(log_record)
         return self.logger.error(self.data, *args, **kwargs)
 
     def debug(self, log_record, *args, **kwargs):
+        if settings.DISABLE_LOGGING:
+            return
         self.insert_log_record(log_record)
         return self.logger.debug(self.data, args, kwargs)
 
     def exception(self, log_record, *args, **kwargs):
+        if settings.DISABLE_LOGGING:
+            return
         self.insert_log_record(log_record)
         return self.logger.exception(self.data, *args, **kwargs)
 
     def info(self, log_record, *args, **kwargs):
+        if settings.DISABLE_LOGGING:
+            return
         self.insert_log_record(log_record)
         return self.logger.info(self.data, *args, **kwargs)
 
     def critical(self, log_record, *args, **kwargs):
+        if settings.DISABLE_LOGGING:
+            return
         self.insert_log_record(log_record)
         return self.logger.critical(self.data, *args, **kwargs)

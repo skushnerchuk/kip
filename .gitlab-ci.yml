@@ -1,7 +1,14 @@
 stages:
-  - build
+  - test
 
-build:
-  stage: build
+Test:
+  stage: test
+  image: python:3.7.4
   script:
-    - echo 'BUILD'
+    - pip install -r requirements.txt -r requirements-test.txt
+    - python3 manage.py test kip_api
+    - coverage run manage.py test kip_api
+    - codecov --token=$CI_CODECOV_IO_TOKEN
+  only:
+    - branches
+  when: manual

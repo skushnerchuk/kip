@@ -28,6 +28,9 @@ SECRET_KEY = '41j6lwa3&%qww!)o!o_8oom^o&%ul=bu#jldq51erh$v-o3l-m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get('DEBUG', 1))
+TESTING = len(sys.argv) > 1 and sys.argv[1].lower() == 'test'
+if TESTING:
+    EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
 # В режиме отладки переменные окружения берем из файла
 # Существующие - будут перезаписаны
@@ -207,12 +210,14 @@ ADMIN_REORDER = (
     {'app': 'kip_api', 'models': ('auth.User',)},
     {'app': 'auth', 'models': ('kip_api.User', 'auth.Group')},
 )
+INFORMER_EMAIL = 'info@example.com'
 
 #
 # Все логи пишем в stdout. Так как работа приложения планируется в контейнере,
 # то логи будем собирать из контейнеров централизованно через FluentD
-#
 
+# Для выполнения тестов рекомендуется выставить FULL_DISABLE_LOGGING = True
+DISABLE_LOGGING = True
 # Логи будем готовить сами, логи django нас не интересуют
 LOGGING = {
     'version': 1,
@@ -226,3 +231,6 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
     format='%(message)s'
 )
+# Гасим логи от factory_boy, они нам не нужны
+logging.getLogger('factory').setLevel(logging.ERROR)
+logging.getLogger('faker').setLevel(logging.ERROR)
