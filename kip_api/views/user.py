@@ -42,7 +42,8 @@ class ConfirmEmailView(APIView):
             user.save()
             return Response(
                 status=status.HTTP_302_FOUND,
-                headers={'Location': settings.BASE_URL}
+                headers={'Location': settings.BASE_URL},
+                content_type='application/json'
             )
         # TODO Заменить на редирект на страницу с соответствующим сообщением
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -59,7 +60,7 @@ class CreateUserView(ValidateMixin, APIView):
         validated_data = self.check(request, UserDetailSerializer)
         us = UserService()
         us.create(validated_data)
-        return Response({'status': 'ok'}, status.HTTP_201_CREATED)
+        return Response({'status': 'ok'}, status.HTTP_201_CREATED, content_type='application/json')
 
 
 class LoginView(ValidateMixin, TokenObtainPairView):
@@ -82,7 +83,8 @@ class LoginView(ValidateMixin, TokenObtainPairView):
         return Response(
             data=result,
             status=status.HTTP_200_OK,
-            headers={'Authorization': 'Bearer {}'.format(auth_result.data['access'])}
+            headers={'Authorization': 'Bearer {}'.format(auth_result.data['access'])},
+            content_type='application/json'
         )
 
 
@@ -119,7 +121,8 @@ class UserDetailView(ValidateMixin, RetrieveAPIView):
         user_detail = super().get(request, args, kwargs)
         return Response(
             {'status': 'ok', 'user_detail': user_detail.data},
-            status.HTTP_200_OK
+            status.HTTP_200_OK,
+            content_type='application/json'
         )
 
 
@@ -139,7 +142,8 @@ class UserUpdateView(ValidateMixin, APIView):
                 'status': 'ok',
                 'user_detail': serializer.data
             },
-            status.HTTP_200_OK
+            status.HTTP_200_OK,
+            content_type='application/json'
         )
 
 
@@ -156,4 +160,4 @@ class UserCoursesView(ListAPIView):
 
     def get(self, request, *args, **kwargs):
         items = super(ListAPIView, self).list(request, args, kwargs)
-        return Response({'status': 'ok', 'courses': items.data}, status.HTTP_200_OK)
+        return Response({'status': 'ok', 'courses': items.data}, status.HTTP_200_OK, content_type='application/json')
