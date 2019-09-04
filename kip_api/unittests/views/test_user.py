@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from data_factories import UserFactoryCustom
 from kip_api.models.user import User
-from kip_api.tests.base_test import BaseTest
+from kip_api.unittests.base_test import BaseTest
 
 REGISTER_ENDPOINT = '/api/v1/auth/register/'
 LOGIN_ENDPOINT = '/api/v1/auth/login/'

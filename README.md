@@ -71,7 +71,8 @@ http://kibana_ip:5601/
 Для выполнения разработки можно поднять отдельно сервер MySQL командой:
 
 ```bash
-docker run -d --restart always -e MYSQL_ROOT_PASSWORD=12345 -v /path/to/data:/var/lib/mysql --name mysqlserver mariadb
+docker run -d --name mysqlserver --restart always -e MYSQL_ROOT_PASSWORD=12345 \
+       -v ~/mysql_data:/var/lib/mysql mariadb --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mysqlserver
 ```
 

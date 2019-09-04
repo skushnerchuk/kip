@@ -104,7 +104,8 @@ DATABASES = {
         'HOST': os.environ.get('DB_HOST', ''),
         'PORT': os.environ.get('DB_PORT', ''),
         'OPTIONS': {
-            'init_command': 'ALTER DATABASE kip CHARACTER SET utf8 COLLATE utf8_general_ci'
+            'charset': 'utf8mb4',
+            # 'init_command': 'ALTER DATABASE kip CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci'
         }
     }
 }
