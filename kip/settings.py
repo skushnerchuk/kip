@@ -105,7 +105,9 @@ DATABASES = {
         'PORT': os.environ.get('DB_PORT', ''),
         'OPTIONS': {
             'charset': 'utf8mb4',
-            # 'init_command': 'ALTER DATABASE kip CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci'
+        },
+        'TEST': {
+            'NAME': 'kip_test'
         }
     }
 }
