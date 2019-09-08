@@ -2,6 +2,12 @@ import json
 import pytest
 
 from django.urls import reverse
+from django.test.client import Client
+from rest_framework.response import Response
+
+from kip_api.models import User
+from .types_for_test import ApiResponse
+
 
 ENDPOINTS = [
     ('/api/v1/auth/register/', 'register'),
@@ -15,8 +21,10 @@ ENDPOINTS = [
 @pytest.mark.parametrize(
     'url, reverse_name', [(url, reverse_name) for url, reverse_name in ENDPOINTS]
 )
-def test_endpoints(client, url, reverse_name):
-    print(f'Check endpoint: {url}, {reverse_name}')
+def test_endpoints(client: Client, url: str, reverse_name: str) -> None:
+    """
+    Тестирование доступности точек API
+    """
     resp = client.options(url)
     # При получении ошибки 401 тоже считаем, что endpoint существует, но требует авторизации
     assert resp.status_code in [200, 401]
@@ -25,22 +33,34 @@ def test_endpoints(client, url, reverse_name):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_register(correct_register):
-    print('Test register')
-    assert correct_register.status_code == 201
+def test_register(correct_register: ApiResponse) -> None:
+    """
+    Проверка регистрации
+    """
+    email, response = correct_register
+    assert response.status_code == 201
+    user = User.objects.get(email=email)
+    assert user.email == email
 
 
 @pytest.mark.django_db(transaction=True)
-def test_login(correct_register, correct_login):
+def test_incorrect_register(incorrect_register: Response) -> None:
+    """
+    Проверка регистрации с неправильными данными
+    """
+    assert incorrect_register.status_code == 403
+
+
+@pytest.mark.django_db(transaction=True)
+def test_login(correct_login: ApiResponse) -> None:
     """
     Проверка тела ответа после авторизации с корректными данными
-    Так как база между тестами чистится, также дергаем фикстуру регистрации
     """
-    print('Test login')
+    email, response = correct_login
     access_token = None
     refresh_token = None
-    resp_content = json.loads(correct_login.content, encoding='utf8')
-    assert correct_login.status_code == 200
+    assert response.status_code == 200
+    resp_content = json.loads(response.content, encoding='utf8')
     # Проверяем, что пришли непустые токены
     tokens = resp_content.get('tokens')
     if tokens:
