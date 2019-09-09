@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.com/skushnerchuk/kip.svg?branch=master)](https://travis-ci.com/skushnerchuk/kip)
-[![codecov](https://codecov.io/gh/skushnerchuk/kip/branch/tests/graph/badge.svg)](https://codecov.io/gh/skushnerchuk/kip/branch/tests)
+[![codecov](https://codecov.io/gh/skushnerchuk/kip/branch/tests/graph/badge.svg)](https://codecov.io/gh/skushnerchuk/kip/branch/pytests)
 
 ### API сервиса курсов (Django Rest Framework)
 
@@ -138,13 +138,14 @@ https://kip.sk-developer.ru/api/v1/
 
 **Этап 1. Тестирование API**
 
-Тестирование API в общем заключается в доступности endpoints, а также в проверке корректности ответов API. 
+Тестирование API в общем заключается в доступности endpoints, а также в проверке корректности ответов API.
+Также тестируются пользовательские функции в моделях. 
 
 Уровень покрытия тестами показывается в специальной метке вверху документа
 
 Для определения уровня покрытия, а также обновление статистики сервиса **codecov.io** необходимо выполнить команды:
 ```shell script
-coverage run manage.py test kip_api
+pytest --cov --cov-append
 codecov --token=<codecov.io token>
 ```
 
