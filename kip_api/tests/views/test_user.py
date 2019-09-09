@@ -15,7 +15,7 @@ from kip_api.tests.types_for_test import (
     UPDATE_PROFILE_BODY,
 )
 
-EmailResponse = Optional[mail.EmailMessage, None]
+EmailResponse = Optional[mail.EmailMessage]
 
 
 def find_email_in_outbox(recipient: str) -> EmailResponse:
