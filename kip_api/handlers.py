@@ -51,7 +51,7 @@ class ErrorHandler(LoggingMixin):
     def invalid_token_handler():
         return Response(
             {'status': 'error', 'message': 'Некорректный токен авторизации'},
-            status.HTTP_400_BAD_REQUEST,
+            status.HTTP_401_UNAUTHORIZED,
             content_type='application/json'
         )
 

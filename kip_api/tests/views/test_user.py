@@ -1,0 +1,135 @@
+import json
+from typing import Dict, Any
+
+import pytest
+from django.test.client import Client
+from django.urls import reverse
+from rest_framework import status
+
+from kip_api.models import User
+from kip_api.tests.types_for_test import (
+    ENDPOINTS, CORRECT_LOGIN_BODY, INCORRECT_REGISTER_BODY,
+    UPDATE_PROFILE_BODY,
+)
+
+
+@pytest.mark.parametrize(
+    'url, reverse_name', [(url, reverse_name) for url, reverse_name in ENDPOINTS]
+)
+def test_endpoints(client: Client, url: str, reverse_name: str) -> None:
+    """Тестирование доступности точек API"""
+    resp = client.options(url)
+    # При получении ошибки 401 тоже считаем, что endpoint существует, но требует авторизации
+    assert resp.status_code in [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED]
+    resp = client.options(reverse(reverse_name))
+    assert resp.status_code in [200, 401]
+
+
+@pytest.mark.django_db(transaction=True)
+def test_registration(client: Client) -> None:
+    """Проверка регистрации"""
+    body = CORRECT_LOGIN_BODY
+    response = client.post('/api/v1/auth/register/', data=body, content_type='application/json')
+    assert response.status_code == status.HTTP_201_CREATED
+    user = User.objects.get(email=body['email'])
+    assert user.email == body['email']
+
+
+@pytest.mark.django_db(transaction=True)
+def test_double_registration(client: Client, correct_login: Dict) -> None:
+    """Проверка регистрации с уже существующей почтой"""
+    user = User.objects.get(email=correct_login['email'])
+    assert user.email == correct_login['email']
+    response = client.post('/api/v1/auth/register/', data=correct_login, content_type='application/json')
+    response_body = json.loads(response.content, encoding='utf-8')
+    assert (response.status_code == status.HTTP_400_BAD_REQUEST) and \
+           (response_body['status'] == 'error') and \
+           (correct_login['email'] in response_body['message'])
+
+
+@pytest.mark.parametrize(
+    'body', [body for body in INCORRECT_REGISTER_BODY]
+)
+@pytest.mark.django_db(transaction=True)
+def test_incorrect_register(client: Client, body: Any) -> None:
+    """Проверка регистрации с неправильными данными"""
+    response = client.post('/api/v1/auth/register/', data=body, content_type='application/json')
+    response_body = json.loads(response.content, encoding='utf-8')
+    assert (response.status_code == status.HTTP_400_BAD_REQUEST) and \
+           (response_body['status'] == 'error')
+
+
+@pytest.mark.django_db(transaction=True)
+def test_login(client: Client, correct_login: Dict) -> None:
+    """Проверка тела ответа после авторизации с корректными данными"""
+    response = client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    resp_content = json.loads(response.content, encoding='utf8')
+    # Проверяем, что пришли непустые токены
+    tokens = resp_content.get('tokens')
+    access_token = None
+    refresh_token = None
+    if tokens:
+        access_token = tokens.get('access')
+        refresh_token = tokens.get('refresh')
+    all_ok = tokens and (len(access_token) > 0) and (len(refresh_token) > 0)
+    assert all_ok
+
+
+@pytest.mark.django_db(transaction=True)
+def test_profile_update(client: Client, correct_login: Dict) -> None:
+    """Проверка обновления профиля пользователя"""
+    response = client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
+    response_body = json.loads(response.content, encoding='utf-8')
+    token = response_body['tokens']['access']
+    response = client.put(
+        '/api/v1/user/update/',
+        data=UPDATE_PROFILE_BODY,
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    response_body = json.loads(response.content, encoding='utf8')
+    assert response_body['status'] == 'ok'
+    profile = response_body['user_detail']['profile']
+    assert profile['first_name'] == UPDATE_PROFILE_BODY['first_name']
+    assert profile['middle_name'] == UPDATE_PROFILE_BODY['middle_name']
+    assert profile['last_name'] == UPDATE_PROFILE_BODY['last_name']
+    assert profile['birth_date'] == UPDATE_PROFILE_BODY['birth_date']
+    assert profile['biography'] == UPDATE_PROFILE_BODY['biography']
+
+
+@pytest.mark.django_db(transaction=True)
+def test_profile_update_with_incorrect_token(client: Client, correct_login: Dict) -> None:
+    """Проверка обновления профиля пользователя с неверным токеном"""
+    client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
+    response = client.put(
+        '/api/v1/user/update/',
+        data=UPDATE_PROFILE_BODY,
+        content_type='application/json',
+        HTTP_AUTHORIZATION='Bearer 1234567890'
+    )
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    response_body = json.loads(response.content, encoding='utf8')
+    assert response_body['status'] == 'error'
+
+
+@pytest.mark.django_db(transaction=True)
+def test_view_user_detail_with_correct_token(client: Client, correct_login: Dict) -> None:
+    """Проверка просмотра сведений о пользователе"""
+    response = client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
+    response_body = json.loads(response.content, encoding='utf-8')
+    token = response_body['tokens']['access']
+    response = client.get('/api/v1/user/', HTTP_AUTHORIZATION=f'Bearer {token}')
+    response_body = json.loads(response.content, encoding='utf8')
+    assert response.status_code, status.HTTP_200_OK
+    assert (response_body['status'] == 'ok') and ('user_detail' in response_body)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_view_user_detail_with_incorrect_token(client: Client, correct_login: Dict) -> None:
+    """Проверка просмотра сведений о пользователе с некорректным токеном"""
+    client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
+    response = client.get('/api/v1/user/', HTTP_AUTHORIZATION=f'Bearer 1234567890')
+    assert response.status_code, status.HTTP_401_UNAUTHORIZED
+
