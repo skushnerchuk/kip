@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.com/skushnerchuk/kip.svg?branch=master)](https://travis-ci.com/skushnerchuk/kip)
-[![codecov](https://codecov.io/gh/skushnerchuk/kip/branch/tests/graph/badge.svg)](https://codecov.io/gh/skushnerchuk/kip/branch/pytests)
+[![codecov](https://codecov.io/gh/skushnerchuk/kip/branch/tests/graph/badge.svg)](https://codecov.io/gh/skushnerchuk/kip/branch/pytest)
 
 ### API сервиса курсов (Django Rest Framework)
 
