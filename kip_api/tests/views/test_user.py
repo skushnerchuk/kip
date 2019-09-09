@@ -1,7 +1,10 @@
 import json
-from typing import Dict, Any
+import re
+from typing import Dict, Any, Optional
 
 import pytest
+from django.conf import settings
+from django.core import mail
 from django.test.client import Client
 from django.urls import reverse
 from rest_framework import status
@@ -11,6 +14,16 @@ from kip_api.tests.types_for_test import (
     ENDPOINTS, CORRECT_LOGIN_BODY, INCORRECT_REGISTER_BODY,
     UPDATE_PROFILE_BODY,
 )
+
+EmailResponse = Optional[mail.EmailMessage, None]
+
+
+def find_email_in_outbox(recipient: str) -> EmailResponse:
+    """Поиск письма в тестовом ящике"""
+    for m in mail.outbox:
+        if recipient in m.to:
+            return m
+    return None
 
 
 @pytest.mark.parametrize(
@@ -25,7 +38,6 @@ def test_endpoints(client: Client, url: str, reverse_name: str) -> None:
     assert resp.status_code in [200, 401]
 
 
-@pytest.mark.django_db(transaction=True)
 def test_registration(client: Client) -> None:
     """Проверка регистрации"""
     body = CORRECT_LOGIN_BODY
@@ -35,7 +47,6 @@ def test_registration(client: Client) -> None:
     assert user.email == body['email']
 
 
-@pytest.mark.django_db(transaction=True)
 def test_double_registration(client: Client, correct_login: Dict) -> None:
     """Проверка регистрации с уже существующей почтой"""
     user = User.objects.get(email=correct_login['email'])
@@ -50,7 +61,6 @@ def test_double_registration(client: Client, correct_login: Dict) -> None:
 @pytest.mark.parametrize(
     'body', [body for body in INCORRECT_REGISTER_BODY]
 )
-@pytest.mark.django_db(transaction=True)
 def test_incorrect_register(client: Client, body: Any) -> None:
     """Проверка регистрации с неправильными данными"""
     response = client.post('/api/v1/auth/register/', data=body, content_type='application/json')
@@ -59,7 +69,6 @@ def test_incorrect_register(client: Client, body: Any) -> None:
            (response_body['status'] == 'error')
 
 
-@pytest.mark.django_db(transaction=True)
 def test_login(client: Client, correct_login: Dict) -> None:
     """Проверка тела ответа после авторизации с корректными данными"""
     response = client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
@@ -76,7 +85,6 @@ def test_login(client: Client, correct_login: Dict) -> None:
     assert all_ok
 
 
-@pytest.mark.django_db(transaction=True)
 def test_profile_update(client: Client, correct_login: Dict) -> None:
     """Проверка обновления профиля пользователя"""
     response = client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
@@ -99,7 +107,6 @@ def test_profile_update(client: Client, correct_login: Dict) -> None:
     assert profile['biography'] == UPDATE_PROFILE_BODY['biography']
 
 
-@pytest.mark.django_db(transaction=True)
 def test_profile_update_with_incorrect_token(client: Client, correct_login: Dict) -> None:
     """Проверка обновления профиля пользователя с неверным токеном"""
     client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
@@ -114,7 +121,6 @@ def test_profile_update_with_incorrect_token(client: Client, correct_login: Dict
     assert response_body['status'] == 'error'
 
 
-@pytest.mark.django_db(transaction=True)
 def test_view_user_detail_with_correct_token(client: Client, correct_login: Dict) -> None:
     """Проверка просмотра сведений о пользователе"""
     response = client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
@@ -126,10 +132,27 @@ def test_view_user_detail_with_correct_token(client: Client, correct_login: Dict
     assert (response_body['status'] == 'ok') and ('user_detail' in response_body)
 
 
-@pytest.mark.django_db(transaction=True)
 def test_view_user_detail_with_incorrect_token(client: Client, correct_login: Dict) -> None:
     """Проверка просмотра сведений о пользователе с некорректным токеном"""
     client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
     response = client.get('/api/v1/user/', HTTP_AUTHORIZATION=f'Bearer 1234567890')
     assert response.status_code, status.HTTP_401_UNAUTHORIZED
 
+
+def test_confirm_email(client: Client, correct_register: [(str, Dict)]) -> None:
+    """Тестирование подтверждения почты"""
+    recipient, response = correct_register
+    email = find_email_in_outbox(recipient)
+    assert email
+    user = User.objects.get(email=recipient)
+    assert not user.email_confirmed
+    # Переходим по ссылке из письма
+    match = re.search(r'href=[\'"]?([^\'" >]+)', email.body)
+    assert match
+    confirm_url = match.group(1)
+    response = client.get(confirm_url)
+    # После подтверждения мы должны перейти на главную страницу,
+    assert response._headers['location'][1] == settings.BASE_URL
+    # Смотрим что почта подтвердилась
+    user = User.objects.get(email=recipient)
+    assert user.email_confirmed

@@ -28,7 +28,7 @@ SECRET_KEY = '41j6lwa3&%qww!)o!o_8oom^o&%ul=bu#jldq51erh$v-o3l-m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get('DEBUG', 1))
-TESTING = len(sys.argv) > 1 and sys.argv[1].lower() == 'test'
+TESTING = (len(sys.argv) > 1 and sys.argv[1].lower() == 'test') or ('pytest' in sys.argv[0].lower())
 if TESTING:
     EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
