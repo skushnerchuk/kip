@@ -17,7 +17,8 @@ services:
     command: --init-file /data/application/init.sql
 
   kip:
-    build: .
+#    build: .
+    image: registry.sk-developer.ru/kip_backend:latest kip_ap
     container_name: kip_api
     restart: always
     ports:
@@ -30,20 +31,24 @@ services:
     volumes:
       - ~/static:/app/static
     environment:
-      EMAIL_HOST: 192.168.1.14
-      EMAIL_PORT: 25
-      EMAIL_HOST_USER: admin
-      EMAIL_HOST_PASSWORD: admin_password
-      DB_USER: root
-      DB_PASSWORD: 12345
+      RMQ_HOST: 127.0.0.1
+      RMQ_PORT: 5672
+      RMQ_USERNAME: guest
+      RMQ_PASSWORD: guest
+      DB_USER: kip
+      DB_PASSWORD: VFERGUSON11284kip
       DB_HOST: database
       DB_PORT: 3306
+      DJANGO_SETTINGS_MODULE: kip.settings
+      ACCESS_TOKEN_LIMIT: 365
+      REFRESH_TOKEN_LIMIT: 1
+      PORT: 8000
       DEBUG: 0
-    logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: api
+#    logging:
+#      driver: "fluentd"
+#      options:
+#        fluentd-address: localhost:24224
+#        tag: api
 
   #
   # Так как сервис API запускается под gunicorn, а он статику отдавать не умеет,
@@ -60,29 +65,29 @@ services:
        - ./nginx:/etc/nginx/conf.d
        - ~/static:/static
 
-  fluentd:
-    build: ./fluentd
-    container_name: kip_fluentd
-    links:
-      - "elasticsearch"
-    ports:
-      - "24224:24224"
-      - "24224:24224/udp"
+#  fluentd:
+#    build: ./fluentd
+#    container_name: kip_fluentd
+#    links:
+#      - "elasticsearch"
+#    ports:
+#      - "24224:24224"
+#      - "24224:24224/udp"
 
-  elasticsearch:
-    image: elasticsearch:6.7.0
-    container_name: kip_es
-    expose:
-      - 9200
-    ports:
-      - "9200:9200"
-    volumes:
-      - ~/kip_es/data:/var/lib/elasticsearch
-
-  kibana:
-    image: kibana:6.7.0
-    container_name: kip_kibana
-    links:
-      - "elasticsearch"
-    ports:
-      - "5601:5601"
+#  elasticsearch:
+#    image: elasticsearch:6.7.0
+#    container_name: kip_es
+#    expose:
+#      - 9200
+#    ports:
+#      - "9200:9200"
+#    volumes:
+#      - ~/kip_es/data:/var/lib/elasticsearch
+#
+#  kibana:
+#    image: kibana:6.7.0
+#    container_name: kip_kibana
+#    links:
+#      - "elasticsearch"
+#    ports:
+#      - "5601:5601"
