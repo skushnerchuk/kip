@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 
 from rest_framework import status
 from rest_framework.parsers import JSONParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
@@ -17,6 +17,26 @@ from kip_api.models.courses import (
     CourseGroup, Participation, Lesson
 )
 from kip_api.utils import APIException
+
+
+class CourseListAllView(ObjectExistMixin, APIView):
+    """
+    Регистрация пользователя на курс.
+    """
+    parser_classes = (JSONParser,)
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
+        cs = CourseService()
+        response = cs.get_all_courses()
+        return Response(
+            {
+                'status': 'ok',
+                'courses': response
+            },
+            status.HTTP_201_CREATED,
+            content_type='application/json'
+        )
 
 
 class CourseSignupView(ObjectExistMixin, ValidateMixin, APIView):

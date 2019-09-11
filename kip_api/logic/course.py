@@ -1,10 +1,14 @@
+from typing import List
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 
 from kip_api.mixins import ObjectExistMixin, EmailMixin
-from kip_api.models.courses import CourseGroup, Participation, UserLessons
+from kip_api.models.courses import (
+    CourseGroup, Participation, UserLessons, Courses
+)
 from kip_api.utils import APIException
 
 User = get_user_model()
@@ -14,6 +18,25 @@ class CourseService(ObjectExistMixin, EmailMixin):
     """
     Слой логики по работе с курсами, группами и уроками
     """
+
+    @staticmethod
+    def get_all_courses() -> List:
+        """
+        Получение сведений по всем имеющимся курсам
+        :return: список с перечнем всех курсов
+        """
+        result = []
+        courses = Courses.objects.all()
+        for course in courses:
+            result.append(
+                {
+                    'name': course.name,
+                    'short_description': course.short_description,
+                    'description': course.description,
+                    'logo': course.logo
+                }
+            )
+        return result
 
     def enroll(self, pk, group_id):
         """
