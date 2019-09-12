@@ -3,6 +3,7 @@ import traceback
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
+from sentry_sdk import capture_message
 
 from common.global_mixins import LoggingMixin
 
@@ -63,6 +64,7 @@ class ErrorHandler(LoggingMixin):
         )
 
     def api_exception_handler(self):
+        capture_message('API exception', level='error')
         return Response(
             {'status': 'error', 'message': '{}'.format(self.exc.message)},
             self.exc.status,
@@ -71,6 +73,7 @@ class ErrorHandler(LoggingMixin):
 
     @staticmethod
     def http_404_handler():
+        capture_message('Object not found', level='error')
         return Response(
             {'status': 'error', 'message': 'Объект не найден'},
             status.HTTP_404_NOT_FOUND,
@@ -94,6 +97,7 @@ class ErrorHandler(LoggingMixin):
         )
 
     def add_to_log(self):
+
         log_record = {
             'traceback': {
                 'stack': traceback.format_stack(),
