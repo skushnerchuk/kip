@@ -1,2 +1,9 @@
-FROM prom/alertmanager:0.1.1
-COPY ./alertmanager.yml /alertmanager.yml
+FROM prom/alertmanager:v0.14.0
+
+ARG VERSION
+ARG MAINTAINER
+
+LABEL version=VERSION
+LABEL maintainer=MAINTAINER
+
+COPY config.yml /etc/alertmanager/

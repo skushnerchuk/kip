@@ -1,3 +1,10 @@
-FROM prom/prometheus:0.18.0
-COPY ./alert.rules    /etc/prometheus/alert.rules
-COPY ./prometheus.yml /etc/prometheus/prometheus.yml
+FROM prom/prometheus:v2.12.0
+
+ARG VERSION
+ARG MAINTAINER
+
+LABEL version=VERSION
+LABEL maintainer=MAINTAINER
+
+COPY prometheus.yml /etc/prometheus/
+COPY alerts.yml /etc/prometheus/
