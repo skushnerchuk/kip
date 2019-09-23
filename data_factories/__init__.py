@@ -207,7 +207,7 @@ def generate_lessons(count):
     # Теперь записываем пользователей в группы. Каждого пользователя
     # записываем на каждый курс, в целях получения нагрузки
     users = User.objects.all()
-    groups = CourseGroup.objects.all()
+    # groups = CourseGroup.objects.all()
     with transaction.atomic():
         for user in users:
             for group in groups:

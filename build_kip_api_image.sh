@@ -2,7 +2,7 @@
 
 set -e
 
-VERSION="0.3"
+VERSION="0.4"
 MAINTAINER="Sergey Kushnerchuk"
 
 echo ${VERSION}

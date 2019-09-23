@@ -40,8 +40,12 @@ class Courses(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Категория'
     )
+    # Краткое описание курса
+    short_description = models.TextField(verbose_name='Краткое описание', blank=True)
     # Описание курса
     description = models.TextField(verbose_name='Описание', blank=True)
+    # Относительная ссылка на логотип курса
+    logo = models.TextField(verbose_name='Логотип', blank=True)
 
     def __str__(self):
         return self.name
