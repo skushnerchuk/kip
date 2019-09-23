@@ -1,4 +1,4 @@
-from kip_api.tests.base_test import BaseTest
+from kip_api.unittests.base_test import BaseTest
 from kip_api.models.user import User, Profile
 
 

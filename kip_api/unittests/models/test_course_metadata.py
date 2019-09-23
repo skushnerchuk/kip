@@ -2,7 +2,7 @@ from kip_api.models.courses import (
     CoursesCategory, Courses, CourseGroup, Participation,
     Lesson, UserLessons
 )
-from kip_api.tests.base_test import BaseTest
+from kip_api.unittests.base_test import BaseTest
 
 
 class CoursesCategoryMetadataTest(BaseTest):

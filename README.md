@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.com/skushnerchuk/kip.svg?branch=master)](https://travis-ci.com/skushnerchuk/kip)
-[![codecov](https://codecov.io/gh/skushnerchuk/kip/branch/tests/graph/badge.svg)](https://codecov.io/gh/skushnerchuk/kip/branch/tests)
+[![codecov](https://codecov.io/gh/skushnerchuk/kip/branch/tests/graph/badge.svg)](https://codecov.io/gh/skushnerchuk/kip/branch/pytest)
 
 ### API сервиса курсов (Django Rest Framework)
 
@@ -71,7 +71,8 @@ http://kibana_ip:5601/
 Для выполнения разработки можно поднять отдельно сервер MySQL командой:
 
 ```bash
-docker run -d --restart always -e MYSQL_ROOT_PASSWORD=12345 -v /path/to/data:/var/lib/mysql --name mysqlserver mariadb
+docker run -d --name mysqlserver --restart always -e MYSQL_ROOT_PASSWORD=12345 \
+       -v ~/mysql_data:/var/lib/mysql mariadb --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mysqlserver
 ```
 
@@ -122,7 +123,7 @@ https://kip.sk-developer.ru/api/v1/
 <details>
 <summary>Тестирование</summary>
 
-#### Тестирование отдельных модулей 
+#### Тестирование отдельных модулей
 
 Тестирование выполняется в несколько этапов
 
@@ -137,14 +138,17 @@ https://kip.sk-developer.ru/api/v1/
 
 **Этап 1. Тестирование API**
 
-Тестирование API в общем заключается в доступности endpoints, а также в проверке корректности ответов API. 
+Тестирование API в общем заключается в доступности endpoints, а также в проверке корректности ответов API.
+Также тестируются пользовательские функции в моделях.
 
 Уровень покрытия тестами показывается в специальной метке вверху документа
 
 Для определения уровня покрытия, а также обновление статистики сервиса **codecov.io** необходимо выполнить команды:
 ```shell script
-coverage run manage.py test kip_api
+pytest --cov --cov-append
 codecov --token=<codecov.io token>
 ```
+
+Для оперативной реакции на возникающие ошибки добавлена интеграция с сервисом **[sentry.io](https://sentry.io/)**
 
 </details>

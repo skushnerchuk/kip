@@ -128,3 +128,4 @@ dmypy.json
 **/**/*.env
 run_cover.sh
 /.xml
+/kip.sql

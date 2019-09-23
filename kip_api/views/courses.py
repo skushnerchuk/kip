@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 
 from rest_framework import status
 from rest_framework.parsers import JSONParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
@@ -19,6 +19,26 @@ from kip_api.models.courses import (
 from kip_api.utils import APIException
 
 
+class CourseListAllView(ObjectExistMixin, APIView):
+    """
+    Регистрация пользователя на курс.
+    """
+    parser_classes = (JSONParser,)
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
+        cs = CourseService()
+        response = cs.get_all_courses()
+        return Response(
+            {
+                'status': 'ok',
+                'courses': response
+            },
+            status.HTTP_201_CREATED,
+            content_type='application/json'
+        )
+
+
 class CourseSignupView(ObjectExistMixin, ValidateMixin, APIView):
     """
     Регистрация пользователя на курс.
@@ -31,7 +51,7 @@ class CourseSignupView(ObjectExistMixin, ValidateMixin, APIView):
         course_id = validated_data['course_id']
         cs = CourseService()
         cs.enroll(request.user.pk, course_id)
-        return Response({'status': 'ok'}, status.HTTP_201_CREATED)
+        return Response({'status': 'ok'}, status.HTTP_201_CREATED, content_type='application/json')
 
 
 class UserGroupsView(ObjectExistMixin, ValidateMixin, ListAPIView):
@@ -51,7 +71,7 @@ class UserGroupsView(ObjectExistMixin, ValidateMixin, ListAPIView):
 
     def get(self, request, *args, **kwargs):
         items = super(ListAPIView, self).list(request, args, kwargs)
-        return Response({'status': 'ok', 'groups': items.data}, status.HTTP_200_OK)
+        return Response({'status': 'ok', 'groups': items.data}, status.HTTP_200_OK, content_type='application/json')
 
 
 class CourseGroupScheduleView(ObjectExistMixin, APIView):
@@ -74,4 +94,4 @@ class CourseGroupScheduleView(ObjectExistMixin, APIView):
         # Расписание выводим отсортированное по номерам уроков
         schedule = Lesson.objects.select_related('group').filter(group=group_id).order_by('number').all()
         serializer = LessonSerializer(schedule, many=True)
-        return Response({'status': 'ok', 'schedule': serializer.data}, status.HTTP_200_OK)
+        return Response({'status': 'ok', 'schedule': serializer.data}, status.HTTP_200_OK, content_type='application/json')

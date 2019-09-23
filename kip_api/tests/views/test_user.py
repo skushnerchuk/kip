@@ -1,308 +1,158 @@
 import json
 import re
+from typing import Dict, Any, Optional
 
+import pytest
 from django.conf import settings
 from django.core import mail
+from django.test.client import Client
 from django.urls import reverse
+from rest_framework import status
 
-from data_factories import UserFactoryCustom
-from kip_api.models.user import User
-from kip_api.tests.base_test import BaseTest
+from kip_api.models import User
+from kip_api.tests.types_for_test import (
+    ENDPOINTS, CORRECT_LOGIN_BODY, INCORRECT_REGISTER_BODY,
+    UPDATE_PROFILE_BODY,
+)
 
-REGISTER_ENDPOINT = '/api/v1/auth/register/'
-LOGIN_ENDPOINT = '/api/v1/auth/login/'
-LOGOUT_ENDPOINT = '/api/v1/auth/logout/'
-USER_DETAIL_ENDPOINT = '/api/v1/user/'
-USER_UPDATE_ENDPOINT = '/api/v1/user/update/'
-
-REGISTER_BODY = {
-    'email': 'username@example.com',
-    'password': '1234567890'
-}
-INCORRECT_EMAIL_REGISTER_BODY = {
-    'email': 'username_example.com',
-    'password': '1234567890'
-}
-INCORRECT_PASSWORD_REGISTER_BODY = {
-    'email': 'username_example.com',
-    'password': ''
-}
-INCORRECT_FIELDS_REGISTER_BODY = {
-    'e_mail': 'username@example.com',
-    'pa_ssword': '1234567890'
-}
-INCORRECT_BODY = "This is string for crash"
-LOGIN_BODY = {
-    'email': 'username@example.com',
-    'password': '1234567890'
-}
-LOGIN_WITH_INCORRECT_PASSWORD_BODY = {
-    'email': 'username@example.com',
-    'password': '0987654321'
-}
-UPDATE_PROFILE_BODY = {
-    'biography': 'My biography',
-    'birth_date': '1975-01-01',
-    'first_name': 'First Name',
-    'middle_name': 'Middle Name',
-    'last_name': 'Last Name'
-}
+EmailResponse = Optional[mail.EmailMessage]
 
 
-class CreateUserViewTest(BaseTest):
-    """Тестирование регистрации пользователя"""
-
-    def test_view_endpoint_exist(self):
-        """Проверяем доступность ссылки по адресу"""
-        self.check_endpoint_exist(REGISTER_ENDPOINT)
-
-    def test_view_endpoint_accessible_by_name(self):
-        """Проверяем доступность ссылки по имени"""
-        self.check_endpoint_exist(reverse('register'))
-
-    def test_register_user(self):
-        """Проверяем регистрацию пользователя"""
-        self.check_request_by_status_code(REGISTER_ENDPOINT, REGISTER_BODY, 201)
-
-    def test_register_double_user(self):
-        """Проверяем регистрацию пользователя с повторным адресом электронной почты"""
-        self.check_request_by_status_code(REGISTER_ENDPOINT, REGISTER_BODY, 201)
-        self.check_request_by_status_code(REGISTER_ENDPOINT, REGISTER_BODY, 400)
-
-    def test_register_with_incorrect_email(self):
-        """Проверяем регистрацию пользователя с некорректным адресом электронной почты"""
-        self.check_request_by_status_code(REGISTER_ENDPOINT, INCORRECT_EMAIL_REGISTER_BODY, 400)
-
-    def test_register_with_incorrect_fields(self):
-        """Проверяем регистрацию пользователя с некорректными полями"""
-        self.check_request_by_status_code(REGISTER_ENDPOINT, INCORRECT_FIELDS_REGISTER_BODY, 400)
-
-    def test_register_with_incorrect_password(self):
-        """Проверяем регистрацию пользователя с некорректными полями"""
-        self.check_request_by_status_code(REGISTER_ENDPOINT, INCORRECT_PASSWORD_REGISTER_BODY, 400)
-
-    def test_register_with_incorrect_register_body(self):
-        """Проверяем регистрацию пользователя с некорректным телом запроса"""
-        self.check_request_by_status_code(REGISTER_ENDPOINT, INCORRECT_BODY, 400)
+def find_email_in_outbox(recipient: str) -> EmailResponse:
+    """Поиск письма в тестовом ящике"""
+    for m in mail.outbox:
+        if recipient in m.to:
+            return m
+    return None
 
 
-class ConfirmEmailViewTest(BaseTest):
-    """Тестирование подтверждения электронной почты"""
-
-    @staticmethod
-    def find_email_in_outbox(recipient):
-        """Поиск письма в тестовом ящике"""
-        for m in mail.outbox:
-            if recipient in m.to:
-                return m
-        return None
-
-    def setUp(self):
-        """Регистрируем пользователя, у которого будем проверять подтверждение почты"""
-        self.check_request_by_status_code(REGISTER_ENDPOINT, REGISTER_BODY, 201)
-
-    def test_confirm_email(self):
-        """Проверка подтверждения почты"""
-        email_address = REGISTER_BODY['email']
-        email = self.find_email_in_outbox(email_address)
-        self.assertIsNotNone(email, 'Email with confirmation link not found in test email inbox!')
-
-        user = User.objects.get(email=email_address)
-        self.assertFalse(user.email_confirmed, f'Email {email_address} is confirmed without clicking on the link!')
-
-        # Переходим по ссылке из письма
-        match = re.search(r'href=[\'"]?([^\'" >]+)', email.body)
-        self.assertIsNotNone(match, 'Confirm url not found in email body!')
-        confirm_url = match.group(1)
-        resp = self.client.get(confirm_url)
-        # После подтверждения мы должны перейти на главную страницу,
-        self.assertURLEqual(
-            resp._headers['location'][1],
-            settings.BASE_URL,
-            f'Redirect link {resp._headers["location"][1]} not equal expected: {settings.BASE_URL}'
-        )
-        # Смотрим что почта подтвердилась
-        user = User.objects.get(email=email_address)
-        self.assertIsNotNone(user, f'User with email {email_address} not exist in database!')
-        self.assertTrue(user.email_confirmed, f'Email {email_address} not confirmed!')
+@pytest.mark.parametrize(
+    'url, reverse_name', [(url, reverse_name) for url, reverse_name in ENDPOINTS]
+)
+def test_endpoints(client: Client, url: str, reverse_name: str) -> None:
+    """Тестирование доступности точек API"""
+    resp = client.options(url)
+    # При получении ошибки 401 тоже считаем, что endpoint существует, но требует авторизации
+    assert resp.status_code in [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED]
+    resp = client.options(reverse(reverse_name))
+    assert resp.status_code in [200, 401]
 
 
-class LoginViewTest(BaseTest):
-    """Тестирование авторизации пользователя"""
-
-    @classmethod
-    def setUpTestData(cls):
-        UserFactoryCustom(
-            email=LOGIN_BODY['email'],
-            email_confirmed=True,
-            password=LOGIN_BODY['password']
-        )
-
-    @staticmethod
-    def find_email_in_outbox(recipient):
-        """Поиск письма в тестовом ящике"""
-        for m in mail.outbox:
-            if recipient in m.to:
-                return m
-        return None
-
-    def test_view_endpoint_exist(self):
-        """Проверяем доступность ссылки по адресу"""
-        self.check_endpoint_exist(LOGIN_ENDPOINT)
-
-    def test_view_endpoint_accessible_by_name(self):
-        """Проверяем доступность ссылки по имени"""
-        self.check_endpoint_exist(reverse('login'))
-
-    def test_login_with_correct_data_and_check_tokens(self):
-        """Проверка тела ответа после авторизации с корректными данными"""
-        access_token = None
-        refresh_token = None
-        resp = self.login(LOGIN_BODY)
-        resp_content = json.loads(resp.content, encoding='utf8')
-        self.assertEqual(resp.status_code, 200, resp_content.get('message'))
-        # Проверяем, что пришли непустые токены
-        tokens = resp_content.get('tokens')
-        if tokens:
-            access_token = tokens.get('access')
-            refresh_token = tokens.get('refresh')
-        all_ok = tokens and (len(access_token) > 0) and (len(refresh_token) > 0)
-        self.assertTrue(all_ok, 'The answer does not contain tokens or they are empty!')
-
-    def test_login_with_correct_data_and_check_auth_header(self):
-        """Проверка заголовка авторизации после авторизации с корректными данными"""
-        resp = self.login(LOGIN_BODY)
-        resp_content = json.loads(resp.content, encoding='utf8')
-        self.assertEqual(resp.status_code, 200, resp_content.get('message'))
-        auth_header = resp._headers.get('authorization')
-        self.assertIsNotNone(auth_header, 'Headers does not contain authorization item!')
-        auth_header_value = auth_header[1]
-        self.assertIn(
-            'Bearer ', auth_header_value,
-            f'Authorization header item contain incorrect value: {auth_header_value}'
-        )
-
-    def test_login_with_incorrect_password(self):
-        """Проверка авторизации с неправильным паролем"""
-        resp = self.login(LOGIN_WITH_INCORRECT_PASSWORD_BODY)
-        resp_content = json.loads(resp.content, encoding='utf8')
-        self.assertEqual(resp.status_code, 403, resp_content.get('message'))
-
-    def test_login_with_incorrect_body(self):
-        """Проверка авторизации с неправильным паролем"""
-        resp = self.login(INCORRECT_BODY)
-        resp_content = json.loads(resp.content, encoding='utf8')
-        self.assertEqual(resp.status_code, 400, resp_content.get('message'))
+def test_registration(client: Client) -> None:
+    """Проверка регистрации"""
+    body = CORRECT_LOGIN_BODY
+    response = client.post('/api/v1/auth/register/', data=body, content_type='application/json')
+    assert response.status_code == status.HTTP_201_CREATED
+    user = User.objects.get(email=body['email'])
+    assert user.email == body['email']
 
 
-class LogoutViewTest(BaseTest):
-    """Тестирование выхода пользователя из системы"""
-
-    @classmethod
-    def setUpTestData(cls):
-        UserFactoryCustom(
-            email=LOGIN_BODY['email'],
-            email_confirmed=True,
-            password=LOGIN_BODY['password']
-        )
-
-    def test_view_endpoint_exist(self):
-        """Проверяем доступность ссылки по адресу"""
-        self.check_endpoint_exist(LOGOUT_ENDPOINT)
-
-    def test_view_endpoint_accessible_by_name(self):
-        """Проверяем доступность ссылки по имени"""
-        self.check_endpoint_exist(reverse('logout'))
-
-    def test_logout_after_login(self):
-        """Тестирование корректного выхода пользователя из системы после корректной авторизации"""
-        resp = self.client.post(LOGIN_ENDPOINT, data=LOGIN_BODY, content_type='application/json')
-        resp_content = json.loads(resp.content, encoding='utf8')
-        refresh_token = resp_content['tokens']['refresh']
-        resp = self.client.post(LOGOUT_ENDPOINT, data={'token': refresh_token}, content_type='application/json')
-        self.assertEqual(resp.status_code, 302)
-        self.assertURLEqual(
-            resp._headers['location'][1],
-            settings.BASE_URL,
-            f'Redirect link {resp._headers["location"][1]} not equal expected: {settings.BASE_URL}'
-        )
-
-    def test_logout_after_login_with_incorrect_token(self):
-        """Тестирование выхода пользователя из системы с некорректным токеном"""
-        self.client.post(LOGIN_ENDPOINT, data=LOGIN_BODY, content_type='application/json')
-        resp = self.client.post(LOGOUT_ENDPOINT, data={'token': 'Incorrect token'}, content_type='application/json')
-        self.assertEqual(resp.status_code, 400)
+def test_double_registration(client: Client, correct_login: Dict) -> None:
+    """Проверка регистрации с уже существующей почтой"""
+    user = User.objects.get(email=correct_login['email'])
+    assert user.email == correct_login['email']
+    response = client.post('/api/v1/auth/register/', data=correct_login, content_type='application/json')
+    response_body = json.loads(response.content, encoding='utf-8')
+    assert (response.status_code == status.HTTP_400_BAD_REQUEST) and \
+           (response_body['status'] == 'error') and \
+           (correct_login['email'] in response_body['message'])
 
 
-class UserDetailViewTest(BaseTest):
-    """Тестирование просмотра информации о пользователе"""
-
-    @classmethod
-    def setUpTestData(cls):
-        UserFactoryCustom(
-            email=LOGIN_BODY['email'],
-            email_confirmed=True,
-            password=LOGIN_BODY['password']
-        )
-
-    def test_view_endpoint_exist(self):
-        """Проверяем доступность ссылки по адресу"""
-        self.check_endpoint_exist(USER_DETAIL_ENDPOINT)
-
-    def test_view_endpoint_accessible_by_name(self):
-        """Проверяем доступность ссылки по имени"""
-        self.check_endpoint_exist(reverse('user_detail'))
-
-    def test_view_detail_after_correct_login(self):
-        """Проверяем доступ с корректным токеном"""
-        resp_content = json.loads(self.login(LOGIN_BODY).content, encoding='utf8')
-        token = resp_content['tokens']['access']
-        resp = self.client.get(USER_DETAIL_ENDPOINT, HTTP_AUTHORIZATION=f'Bearer {token}')
-        resp_content = json.loads(resp.content, encoding='utf8')
-        self.assertEqual(resp.status_code, 200, resp_content.get('message'))
-
-    def test_view_detail_with_incorrect_token(self):
-        """Проверяем доступ с некорректным токеном"""
-        token = "Incorrect token"
-        resp = self.client.get(USER_DETAIL_ENDPOINT, HTTP_AUTHORIZATION=f'Bearer {token}')
-        self.assertEqual(resp.status_code, 403)
+@pytest.mark.parametrize(
+    'body', [body for body in INCORRECT_REGISTER_BODY]
+)
+def test_incorrect_register(client: Client, body: Any) -> None:
+    """Проверка регистрации с неправильными данными"""
+    response = client.post('/api/v1/auth/register/', data=body, content_type='application/json')
+    response_body = json.loads(response.content, encoding='utf-8')
+    assert (response.status_code == status.HTTP_400_BAD_REQUEST) and \
+           (response_body['status'] == 'error')
 
 
-class UserUpdateViewTest(BaseTest):
-    """Тестирование редактирования информации о пользователе"""
+def test_login(client: Client, correct_login: Dict) -> None:
+    """Проверка тела ответа после авторизации с корректными данными"""
+    response = client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
+    assert response.status_code == status.HTTP_200_OK
+    resp_content = json.loads(response.content, encoding='utf8')
+    # Проверяем, что пришли непустые токены
+    tokens = resp_content.get('tokens')
+    access_token = None
+    refresh_token = None
+    if tokens:
+        access_token = tokens.get('access')
+        refresh_token = tokens.get('refresh')
+    all_ok = tokens and (len(access_token) > 0) and (len(refresh_token) > 0)
+    assert all_ok
 
-    @classmethod
-    def setUpTestData(cls):
-        UserFactoryCustom(
-            email=LOGIN_BODY['email'],
-            email_confirmed=True,
-            password=LOGIN_BODY['password']
-        )
 
-    def test_view_endpoint_exist(self):
-        """Проверяем доступность ссылки по адресу"""
-        self.check_endpoint_exist(USER_UPDATE_ENDPOINT)
+def test_profile_update(client: Client, correct_login: Dict) -> None:
+    """Проверка обновления профиля пользователя"""
+    response = client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
+    response_body = json.loads(response.content, encoding='utf-8')
+    token = response_body['tokens']['access']
+    response = client.put(
+        '/api/v1/user/update/',
+        data=UPDATE_PROFILE_BODY,
+        content_type='application/json',
+        HTTP_AUTHORIZATION=f'Bearer {token}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    response_body = json.loads(response.content, encoding='utf8')
+    assert response_body['status'] == 'ok'
+    profile = response_body['user_detail']['profile']
+    assert profile['first_name'] == UPDATE_PROFILE_BODY['first_name']
+    assert profile['middle_name'] == UPDATE_PROFILE_BODY['middle_name']
+    assert profile['last_name'] == UPDATE_PROFILE_BODY['last_name']
+    assert profile['birth_date'] == UPDATE_PROFILE_BODY['birth_date']
+    assert profile['biography'] == UPDATE_PROFILE_BODY['biography']
 
-    def test_view_endpoint_accessible_by_name(self):
-        """Проверяем доступность ссылки по имени"""
-        self.check_endpoint_exist(reverse('user_update'))
 
-    def test_update_after_correct_login(self):
-        """Проверяем обновление профиля с корректным токеном"""
-        resp_content = json.loads(self.login(LOGIN_BODY).content, encoding='utf8')
-        token = resp_content['tokens']['access']
-        resp = self.client.put(
-            USER_UPDATE_ENDPOINT,
-            data=UPDATE_PROFILE_BODY, content_type='application/json',
-            HTTP_AUTHORIZATION=f'Bearer {token}')
-        resp_content = json.loads(resp.content, encoding='utf8')
-        self.assertEqual(resp.status_code, 200, resp_content.get('message'))
+def test_profile_update_with_incorrect_token(client: Client, correct_login: Dict) -> None:
+    """Проверка обновления профиля пользователя с неверным токеном"""
+    client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
+    response = client.put(
+        '/api/v1/user/update/',
+        data=UPDATE_PROFILE_BODY,
+        content_type='application/json',
+        HTTP_AUTHORIZATION='Bearer 1234567890'
+    )
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    response_body = json.loads(response.content, encoding='utf8')
+    assert response_body['status'] == 'error'
 
-    def test_update_with_incorrect_token(self):
-        """Проверяем обновление профиля с некорректным токеном"""
-        token = 'Incorrect token'
-        resp = self.client.put(
-            USER_UPDATE_ENDPOINT,
-            data=UPDATE_PROFILE_BODY, content_type='application/json',
-            HTTP_AUTHORIZATION=f'Bearer {token}')
-        self.assertEqual(resp.status_code, 403)
+
+def test_view_user_detail_with_correct_token(client: Client, correct_login: Dict) -> None:
+    """Проверка просмотра сведений о пользователе"""
+    response = client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
+    response_body = json.loads(response.content, encoding='utf-8')
+    token = response_body['tokens']['access']
+    response = client.get('/api/v1/user/', HTTP_AUTHORIZATION=f'Bearer {token}')
+    response_body = json.loads(response.content, encoding='utf8')
+    assert response.status_code, status.HTTP_200_OK
+    assert (response_body['status'] == 'ok') and ('user_detail' in response_body)
+
+
+def test_view_user_detail_with_incorrect_token(client: Client, correct_login: Dict) -> None:
+    """Проверка просмотра сведений о пользователе с некорректным токеном"""
+    client.post('/api/v1/auth/login/', data=correct_login, content_type='application/json')
+    response = client.get('/api/v1/user/', HTTP_AUTHORIZATION=f'Bearer 1234567890')
+    assert response.status_code, status.HTTP_401_UNAUTHORIZED
+
+
+def test_confirm_email(client: Client, correct_register: [(str, Dict)]) -> None:
+    """Тестирование подтверждения почты"""
+    recipient, response = correct_register
+    email = find_email_in_outbox(recipient)
+    assert email
+    user = User.objects.get(email=recipient)
+    assert not user.email_confirmed
+    # Переходим по ссылке из письма
+    match = re.search(r'href=[\'"]?([^\'" >]+)', email.body)
+    assert match
+    confirm_url = match.group(1)
+    response = client.get(confirm_url)
+    # После подтверждения мы должны перейти на главную страницу,
+    assert response._headers['location'][1] == settings.BASE_URL
+    # Смотрим что почта подтвердилась
+    user = User.objects.get(email=recipient)
+    assert user.email_confirmed
