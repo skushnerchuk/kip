@@ -36,9 +36,9 @@ class MonitoringMiddleware(BusMixin):
             'measurement': 'request_duration',
             'tags': {
                 'host': self.request.get_host(),
+                'endpoint': self.request.path,
             },
             'fields': {
-                'endpoint': self.request.path,
                 'uuid': self.id,
                 'value': self.current_time_in_milliseconds() - self.start_time,
             }
@@ -53,9 +53,9 @@ class MonitoringMiddleware(BusMixin):
             'measurement': 'http_error',
             'tags': {
                 'host': self.request.get_host(),
+                'endpoint': self.request.path,
             },
             'fields': {
-                'endpoint': self.request.path,
                 'uuid': self.id,
                 'value': self.response.status_code
             }
@@ -75,11 +75,11 @@ class MonitoringMiddleware(BusMixin):
                 'measurement': 'sql_duration_for_request',
                 'tags': {
                     'host': self.request.get_host(),
+                    'endpoint': self.request.path,
+                    'related_to': self.id,
                 },
                 'fields': {
-                    'related_to': self.id,
                     'value': sql_total_time,
-                    'count': len(connection.queries)
                 }
             }
             self.send_metrics(sql_metrics)
