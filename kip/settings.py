@@ -49,6 +49,7 @@ if DEBUG:
     INSTALLED_APPS.append('debug_toolbar')
 
 MIDDLEWARE = [
+    'kip_api.middleware.MonitoringMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

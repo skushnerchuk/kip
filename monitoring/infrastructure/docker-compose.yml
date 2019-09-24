@@ -1,87 +1,47 @@
 version: '3.3'
+
 services:
-
-  prometheus:
-    image: registry.sk-developer.ru/prometheus:0.1
+  influxdb:
+    image: influxdb:1.7.8
+    container_name: influxdb
     ports:
-      - '9090:9090'
+      - 8086:8086
+      - 8082:8082
+    env_file:
+      - 'env.influxdb'
     volumes:
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention=1d'
-    networks:
-      - front_net
-      - back_net
-
-  node-exporter:
-    image: prom/node-exporter:v0.18.1
-    user: root
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
-    networks:
-      - front_net
-      - back_net
-
-  cadvisor:
-    image: google/cadvisor:v0.33.0
-    volumes:
-      - '/:/rootfs:ro'
-      - '/var/run:/var/run:rw'
-      - '/sys:/sys:ro'
-      - '/var/lib/docker/:/var/lib/docker:ro'
-    ports:
-      - '8080:8080'
-    networks:
-       - front_net
-       - back_net
+      - ~/kip/influxdb/data:/var/lib/influxdb
 
   grafana:
-    image: grafana/grafana:6.3.5
-    volumes:
-      - grafana_data:/var/lib/grafana
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=secret
-    depends_on:
-      - prometheus
-    ports:
-      - 3000:3000
-    networks:
-       - front_net
-       - back_net
+      image: grafana/grafana:6.3.5
+      container_name: grafana
+      env_file:
+        - 'env.grafana'
+      volumes:
+        # При наличии в логах ошибки доступа Grafana к папкам, необходимо выполнить
+        # команду: sudo chown 472:472 ~/kip/grafana/ и перезапустить стек
+        - ~/kip/grafana:/var/lib/grafana
+      environment:
+        - GF_SECURITY_ADMIN_USER=admin
+        - GF_SECURITY_ADMIN_PASSWORD=secret
+      depends_on:
+        - influxdb
+      ports:
+        - 3000:3000
 
-  alertmanager:
-    image: registry.sk-developer.ru/alertmanager:0.1
-    command:
-      - '--config.file=/etc/alertmanager/config.yml'
-    ports:
-      - 9093:9093
-    networks:
-       - front_net
-       - back_net
-
-volumes:
-  grafana_data:
-  prometheus_data:
-
-networks:
-  back_net:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-      - subnet: 10.0.2.0/24
-  front_net:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-      - subnet: 10.0.1.0/24
+  #
+  # Chronograf добавлен в качестве администраивной части InfluxDB,
+  # так как сама она ее более не содержит
+  #
+  chronograf:
+      image: chronograf:1.7.14
+      environment:
+        RESOURCES_PATH: "/usr/share/chronograf/resources"
+      volumes:
+        - ~/kip/chronograf/data/:/var/lib/chronograf/
+      links:
+        - influxdb
+      ports:
+        - 8888:8888
+      depends_on:
+        - influxdb
