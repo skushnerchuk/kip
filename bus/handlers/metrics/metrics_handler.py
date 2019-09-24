@@ -34,8 +34,7 @@ logging.basicConfig(
 
 class Metrics(LoggingMixin):
     """
-    Отправка электронной почты
-    Отправка вложений пока не поддерживается
+    Отправка метрик в систему мониторинга
     """
 
     @staticmethod
