@@ -76,6 +76,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.media',
             ],
         },
     },
@@ -228,3 +229,11 @@ logging.basicConfig(
 # Гасим логи от factory_boy, они нам не нужны
 logging.getLogger('factory').setLevel(logging.ERROR)
 logging.getLogger('faker').setLevel(logging.ERROR)
+
+# Настройки для работы с медиа
+MEDIA_URL = '/images/'
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', 'media')
+if not os.path.exists(MEDIA_ROOT):
+    os.makedirs(MEDIA_ROOT)
+if not os.path.exists(MEDIA_ROOT + '/avatars'):
+    os.makedirs(MEDIA_ROOT + '/avatars')

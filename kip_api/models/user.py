@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
 
 #
@@ -100,6 +101,8 @@ class Profile(models.Model):
     middle_name = models.CharField(_('Отчество'), max_length=50, null=True, blank=True)
     # Фамилия
     last_name = models.CharField(_('Фамилия'), max_length=50, null=True, blank=True)
+    # Аватарка
+    avatar = models.ImageField(upload_to='avatars/')
 
     def __str__(self):
         return 'Профиль: {}'.format(self.user.email)
