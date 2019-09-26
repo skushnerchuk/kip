@@ -12,16 +12,23 @@ class ProfileSerializer(serializers.ModelSerializer):
     """
     Сведения о профиле пользователя
     """
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
-        fields = ('first_name', 'middle_name', 'last_name', 'birth_date', 'biography',)
+        fields = ('first_name', 'middle_name', 'last_name', 'birth_date', 'biography', 'avatar_url',)
 
     birth_date = serializers.DateField(required=True, allow_null=True)
     biography = serializers.CharField(required=True, allow_null=True, allow_blank=True)
     first_name = serializers.CharField(required=True, allow_null=True, allow_blank=True)
     middle_name = serializers.CharField(required=True, allow_null=True, allow_blank=True)
     last_name = serializers.CharField(required=True, allow_null=True, allow_blank=True)
+
+    @staticmethod
+    def get_avatar_url(profile):
+        return profile.avatar.url
+        # request = self.context.get('request')
+        # return request.build_absolute_uri(avatar_url)
 
 
 class UserLoginSerializer(serializers.ModelSerializer):

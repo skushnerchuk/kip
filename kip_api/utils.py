@@ -1,3 +1,6 @@
+import os
+import uuid
+
 from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
@@ -39,3 +42,14 @@ def create_email_confirm_url(user_id, token):
         urlsafe_base64_encode(force_bytes(user_id)),
         token
     )
+
+
+def image_file_name(instance, original_filename):
+    """
+    Динамическая генерация пути, куда сохранять загружаемый файл
+    Все картинки мы сохраняем в папке пользователя
+    """
+    _, ext = os.path.splitext(original_filename)
+    filename = str(uuid.uuid4()) + ext
+
+    return '/'.join([instance.user.email, filename])
