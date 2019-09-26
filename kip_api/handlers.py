@@ -25,7 +25,6 @@ class ErrorHandler(LoggingMixin):
             'authenticationfailed': self.auth_failed_handler,
             'apiexception': self.api_exception_handler,
             'http404': self.http_404_handler,
-            'validationerror': self.validation_error_handler,
             'parseerror': self.validation_error_handler,
             'tokenerror': self.token_error_handler,
             'validationerror': self.validation_error_handler,
