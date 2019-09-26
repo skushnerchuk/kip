@@ -230,6 +230,6 @@ logging.getLogger('faker').setLevel(logging.ERROR)
 # Настройки для работы с медиа
 MEDIA_URL = '/images/'
 MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(BASE_DIR, 'images'))
-DEFAULT_AVATAR = '/'.join([MEDIA_ROOT, 'default_avatar.jpeg'])
+DEFAULT_AVATAR = ''.join([MEDIA_URL, 'default_avatar.jpeg'])
 
 APPEND_SLASH = False

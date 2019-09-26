@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -62,18 +62,14 @@ class UserService(ObjectExistMixin, EmailMixin):
     @staticmethod
     def upload_avatar(request):
         """Загрузка аватара"""
-        files = request.FILES
-        file = files['file']
-        user = request.user
-        user.profile.avatar = file
-        user.profile.save()
-        return user.profile.avatar.url
+        file = request.FILES['file']
+        request.user.profile.avatar = file
+        request.user.profile.save()
 
     @staticmethod
     def delete_avatar(request):
         """Удаление аватара"""
-        user = request.user
-        user.profile.avatar.delete()
-        user.profile.avatar = settings.DEFAULT_AVATAR
-        user.profile.save()
-        return user.profile.avatar.url
+        if (not request.user.profile.avatar) or (request.user.profile.avatar.url == settings.DEFAULT_AVATAR):
+            return
+        request.user.profile.avatar.delete()
+        request.user.profile.save()

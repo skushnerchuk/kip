@@ -16,7 +16,7 @@ from kip_api.mixins import ValidateMixin
 from kip_api.models.courses import Participation
 from kip_api.serializers.courses import UserCoursesSerializer
 from kip_api.serializers.user import (
-    UserLoginSerializer, UserDetailSerializer, ProfileSerializer,
+    UserLoginSerializer, UserDetailSerializer, ProfileSerializer
 )
 from kip_api.utils import token_generator, APIException
 
@@ -160,11 +160,11 @@ class UserUpdateAvatarView(APIView):
         Загрузка аватара. Файл будет размещен в папке MEDIA_ROOT/user_email
         """
         UserService().delete_avatar(request)
-        url = UserService().upload_avatar(request)
+        UserService().upload_avatar(request)
         return Response(
             {
                 'status': 'ok',
-                'url': url
+                'url': request.user.profile.avatar.url
             },
             status.HTTP_200_OK,
             content_type='application/json'
@@ -175,10 +175,11 @@ class UserUpdateAvatarView(APIView):
         """
         Удаление аватара. Вместо него будет подставлен аватар по умолчанию
         """
+        UserService().delete_avatar(request)
         return Response(
             {
                 'status': 'ok',
-                'url': settings.MEDIA_URL + UserService().delete_avatar(request)
+                'url': settings.DEFAULT_AVATAR
             },
             status.HTTP_200_OK,
             content_type='application/json'

@@ -1,8 +1,9 @@
 #
 # Сериализаторы представлений пользователей
 #
-
+import os
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from rest_framework import serializers
 
 from kip_api.models import Profile
@@ -26,9 +27,9 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_avatar_url(profile):
-        return profile.avatar.url
-        # request = self.context.get('request')
-        # return request.build_absolute_uri(avatar_url)
+        if os.path.isfile(profile.avatar.path):
+            return profile.avatar.url
+        return settings.DEFAULT_AVATAR
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
