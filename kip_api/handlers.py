@@ -28,6 +28,7 @@ class ErrorHandler(LoggingMixin):
             'validationerror': self.validation_error_handler,
             'parseerror': self.validation_error_handler,
             'tokenerror': self.token_error_handler,
+            'validationerror': self.validation_error_handler,
         }
         response = exception_handler(exc, context)
         exception_class = exc.__class__.__name__.lower()
@@ -80,10 +81,9 @@ class ErrorHandler(LoggingMixin):
             content_type='application/json'
         )
 
-    @staticmethod
-    def validation_error_handler():
+    def validation_error_handler(self):
         return Response(
-            {'status': 'error', 'message': 'Неверные входные данные'},
+            {'status': 'error', 'message': f'Неверные входные данные: {self.exc.message}'},
             status.HTTP_400_BAD_REQUEST,
             content_type='application/json'
         )

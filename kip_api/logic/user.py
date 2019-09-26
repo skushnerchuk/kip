@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -9,6 +9,8 @@ from rest_framework import status
 from kip_api.mixins import ObjectExistMixin, EmailMixin
 from kip_api.models.user import Profile
 from kip_api.utils import APIException
+from kip_api.validators import validate_image
+
 
 User = get_user_model()
 
@@ -63,6 +65,7 @@ class UserService(ObjectExistMixin, EmailMixin):
     def upload_avatar(request):
         """Загрузка аватара"""
         file = request.FILES['file']
+        validate_image(file)
         request.user.profile.avatar = file
         request.user.profile.save()
 

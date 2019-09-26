@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+
 from kip_api.utils import image_file_name
 
 
@@ -103,7 +103,7 @@ class Profile(models.Model):
     # Фамилия
     last_name = models.CharField(_('Фамилия'), max_length=50, null=True, blank=True)
     # Аватарка
-    avatar = models.ImageField(upload_to=image_file_name, default=settings.DEFAULT_AVATAR)
+    avatar = models.ImageField(upload_to=image_file_name)
 
     def __str__(self):
         return 'Профиль: {}'.format(self.user.email)
