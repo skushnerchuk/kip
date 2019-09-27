@@ -14,7 +14,6 @@ from kip_api.tests.types_for_test import CORRECT_LOGIN_BODY
 
 settings.DISABLE_LOGGING = True
 
-
 @pytest.fixture(autouse=True)
 def enable_db_access_for_all_tests(transactional_db):
     pass
@@ -50,3 +49,8 @@ def prepare_courses():
     yield
     User.objects.all().delete()
     CoursesCategory.objects.all().delete()
+
+
+@pytest.yield_fixture()
+def prepare_avatar():
+    yield ''

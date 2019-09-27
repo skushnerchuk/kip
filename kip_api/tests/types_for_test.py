@@ -31,3 +31,41 @@ UPDATE_PROFILE_BODY = {
     'middle_name': 'Middle Name',
     'last_name': 'Last Name'
 }
+
+#
+# Заголовки запроса для тестирования загрузки аватара
+#
+UPLOAD_AVATAR_HEADERS = [
+    {
+        'Content-Type': 'image/jpeg',
+        'Content-Disposition': 'attachment; filename=avatar.jpg',
+    },
+]
+
+INCORRECT_UPLOAD_AVATAR_HEADERS = [
+    {
+        'Content-Type': 'image/jpeg',
+        'Content-Disposition': 'attachment; filename=data.pdf'
+    },
+    {
+        'Content-Type': 'application/json',
+        'Content-Disposition': 'attachment; filename=avatar.jpg'
+    },
+    {
+        'Content-Type': 'unsupported-content-type',
+        'Content-Disposition': 'filename=avatar.png'
+    },
+    {
+        'Content-Type': '',
+        'Content-Disposition': ''
+    },
+    {
+        'Content-Type': '',
+    },
+    {
+        'Content-Disposition': ''
+    },
+    {
+
+    }
+]

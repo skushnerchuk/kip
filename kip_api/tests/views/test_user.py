@@ -1,5 +1,6 @@
 import json
 import re
+import os
 from typing import Dict, Any, Optional
 
 import pytest
@@ -12,8 +13,10 @@ from rest_framework import status
 from kip_api.models import User
 from kip_api.tests.types_for_test import (
     ENDPOINTS, CORRECT_LOGIN_BODY, INCORRECT_REGISTER_BODY,
-    UPDATE_PROFILE_BODY,
+    UPDATE_PROFILE_BODY, UPLOAD_AVATAR_HEADERS, INCORRECT_UPLOAD_AVATAR_HEADERS
 )
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kip.settings")
 
 EmailResponse = Optional[mail.EmailMessage]
 
@@ -156,3 +159,25 @@ def test_confirm_email(client: Client, correct_register: [(str, Dict)]) -> None:
     # Смотрим что почта подтвердилась
     user = User.objects.get(email=recipient)
     assert user.email_confirmed
+
+
+#
+# Тестирование загрузки аватара в профиль пользователя"""
+#
+
+def test_avatar_upload(client: Client, correct_login: Dict) -> None:
+    """Проверка загрузки, когдя все входные данные корректны"""
+    response = client.post('/api/v1/auth/login/',
+                           data=correct_login,
+                           content_type='application/json')
+    response_body = json.loads(response.content, encoding='utf-8')
+    token = response_body['tokens']['access']
+    headers = {
+        'HTTP_AUTHORIZATION': f'Bearer {token}',
+        **UPLOAD_AVATAR_HEADERS
+    }
+    response = client.post(
+        'user/update/avatar/',
+        data='',
+        **headers)
+    response_body = json.loads(response.content, encoding='utf8')

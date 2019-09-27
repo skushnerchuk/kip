@@ -39,9 +39,7 @@ class Metrics(LoggingMixin):
 
     @staticmethod
     async def send_metrics(metrics):
-        """
-        Отправка метрик в InfluxDB
-        """
+        """Отправка метрик в InfluxDB"""
         async with InfluxDBClient(db=INFLUX_DB) as client:
             await client.write(metrics)
 
