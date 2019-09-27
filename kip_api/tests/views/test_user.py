@@ -165,7 +165,7 @@ def test_confirm_email(client: Client, correct_register: [(str, Dict)]) -> None:
 # Тестирование загрузки аватара в профиль пользователя"""
 #
 
-def test_avatar_upload(client: Client, correct_login: Dict) -> None:
+def test_avatar_upload(client: Client, correct_login: Dict, prepare_avatar) -> None:
     """Проверка загрузки, когда все входные данные корректны"""
     response = client.post('/api/v1/auth/login/',
                            data=correct_login,
@@ -192,3 +192,28 @@ def test_avatar_upload(client: Client, correct_login: Dict) -> None:
     filename = response_body['url'].split('/')[-1]
     path = '/'.join([settings.MEDIA_ROOT, correct_login['email'], filename])
     assert os.path.isfile(path)
+
+
+@pytest.mark.parametrize(
+    'headers', [headers for headers in INCORRECT_UPLOAD_AVATAR_HEADERS]
+)
+def test_avatar_upload_with_incorrect_headers(client: Client, correct_login: Dict, headers) -> None:
+    """Проверка загрузки, когда заголовки некорректны"""
+    response = client.post('/api/v1/auth/login/',
+                           data=correct_login,
+                           content_type='application/json')
+    response_body = json.loads(response.content, encoding='utf-8')
+    token = response_body['tokens']['access']
+    headers = {
+        'HTTP_AUTHORIZATION': f'Bearer {token}',
+        **headers
+    }
+    response = client.post(
+        '/api/v1/user/update/avatar/',
+        data={},
+        **headers)
+    response_body = json.loads(response.content, encoding='utf8')
+    # Сначала проверяем, что сервер вернул корректные данные
+    assert response.status_code == 400 and \
+           response_body['status'] == 'error' and \
+           response_body['message']

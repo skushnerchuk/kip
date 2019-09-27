@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Dict
 
 import pytest
@@ -49,8 +50,3 @@ def prepare_courses():
     yield
     User.objects.all().delete()
     CoursesCategory.objects.all().delete()
-
-
-@pytest.yield_fixture()
-def prepare_avatar():
-    yield ''

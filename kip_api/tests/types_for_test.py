@@ -43,22 +43,18 @@ UPLOAD_AVATAR_HEADERS = \
 
 INCORRECT_UPLOAD_AVATAR_HEADERS = [
     {
-        'Content-Type': 'application/json',
-        'Content-Disposition': 'attachment; filename=avatar.jpg'
+        'HTTP_CONTENT_TYPE': 'unsupported-content-type',
+        'HTTP_CONTENT_DISPOSITION': 'filename=avatar.png'
     },
     {
-        'Content-Type': 'unsupported-content-type',
-        'Content-Disposition': 'filename=avatar.png'
+        'HTTP_CONTENT_TYPE': '',
+        'HTTP_CONTENT_DISPOSITION': 'attachment; file=avatar.jpg'
     },
     {
-        'Content-Type': '',
-        'Content-Disposition': ''
+        'HTTP_CONTENT_TYPE': '',
     },
     {
-        'Content-Type': '',
-    },
-    {
-        'Content-Disposition': ''
+        'HTTP_CONTENT_DISPOSITION': ''
     },
     {
 

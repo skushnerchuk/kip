@@ -9,7 +9,7 @@ from rest_framework import status
 from kip_api.mixins import ObjectExistMixin, EmailMixin
 from kip_api.models.user import Profile
 from kip_api.utils import APIException
-from kip_api.validators import validate_image
+from kip_api.validators import validate_image, validate_content_type
 
 
 User = get_user_model()
@@ -66,6 +66,10 @@ class UserService(ObjectExistMixin, EmailMixin):
         """Загрузка аватара"""
         file = request.FILES['file']
         validate_image(file)
+        validate_content_type(
+            request._request.headers['Content-Type'],
+            ['image/jpeg', 'image/png']
+        )
         request.user.profile.avatar = file
         request.user.profile.save()
 
