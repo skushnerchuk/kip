@@ -1,5 +1,7 @@
 import os
 import uuid
+import string
+import random
 
 from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -53,3 +55,8 @@ def image_file_name(instance, original_filename):
     filename = str(uuid.uuid4()) + ext
 
     return '/'.join([instance.user.email, filename])
+
+
+def generate_dump(size: int) -> str:
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for _ in range(size))

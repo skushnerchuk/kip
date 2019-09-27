@@ -1,6 +1,6 @@
 import json
-import os
-from typing import Dict
+import shutil
+from typing import Dict, NoReturn
 
 import pytest
 from django.conf import settings
@@ -14,6 +14,7 @@ from kip_api.models import User, CoursesCategory
 from kip_api.tests.types_for_test import CORRECT_LOGIN_BODY
 
 settings.DISABLE_LOGGING = True
+
 
 @pytest.fixture(autouse=True)
 def enable_db_access_for_all_tests(transactional_db):
@@ -41,7 +42,7 @@ def correct_register(client: Client) -> [(str, Dict)]:
 
 
 @pytest.yield_fixture()
-def prepare_courses():
+def prepare_courses() -> NoReturn:
     generate_users(1)
     generate_categories(1)
     generate_courses(1)
@@ -50,3 +51,16 @@ def prepare_courses():
     yield
     User.objects.all().delete()
     CoursesCategory.objects.all().delete()
+
+
+@pytest.yield_fixture()
+def delete_avatar(request) -> None:
+    def cleanup():
+        shutil.rmtree(request.node.user_media)
+
+    request.addfinalizer(cleanup)
+
+
+@pytest.yield_fixture()
+def generate_image_file():
+    pass

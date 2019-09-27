@@ -15,6 +15,7 @@ from kip_api.tests.types_for_test import (
     ENDPOINTS, CORRECT_LOGIN_BODY, INCORRECT_REGISTER_BODY,
     UPDATE_PROFILE_BODY, UPLOAD_AVATAR_HEADERS, INCORRECT_UPLOAD_AVATAR_HEADERS
 )
+from kip_api.utils import generate_dump
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kip.settings")
 
@@ -165,7 +166,7 @@ def test_confirm_email(client: Client, correct_register: [(str, Dict)]) -> None:
 # Тестирование загрузки аватара в профиль пользователя"""
 #
 
-def test_avatar_upload(client: Client, correct_login: Dict, prepare_avatar) -> None:
+def test_avatar_upload(client: Client, correct_login: Dict, delete_avatar, request) -> None:
     """Проверка загрузки, когда все входные данные корректны"""
     response = client.post('/api/v1/auth/login/',
                            data=correct_login,
@@ -176,9 +177,10 @@ def test_avatar_upload(client: Client, correct_login: Dict, prepare_avatar) -> N
         'HTTP_AUTHORIZATION': f'Bearer {token}',
         **UPLOAD_AVATAR_HEADERS
     }
-    response = client.post(
+    response = client.generic(
+        'POST',
         '/api/v1/user/update/avatar/',
-        data={},
+        generate_dump(1024),
         **headers)
     response_body = json.loads(response.content, encoding='utf8')
     # Сначала проверяем, что сервер вернул корректные данные
@@ -191,16 +193,23 @@ def test_avatar_upload(client: Client, correct_login: Dict, prepare_avatar) -> N
     # эту проверку заменить
     filename = response_body['url'].split('/')[-1]
     path = '/'.join([settings.MEDIA_ROOT, correct_login['email'], filename])
+    # после теста удаляем всю папку медиа для этого пользователя
+    request.node.user_media = '/'.join([settings.MEDIA_ROOT, correct_login['email']])
     assert os.path.isfile(path)
 
 
 @pytest.mark.parametrize(
     'headers', [headers for headers in INCORRECT_UPLOAD_AVATAR_HEADERS]
 )
-def test_avatar_upload_with_incorrect_headers(client: Client, correct_login: Dict, headers) -> None:
+def test_avatar_upload_with_incorrect_headers(
+        client: Client,
+        correct_login: Dict,
+        headers: Dict,
+        delete_avatar,
+        request) -> None:
     """Проверка загрузки, когда заголовки некорректны"""
     response = client.post('/api/v1/auth/login/',
-                           data=correct_login,
+                           data={},
                            content_type='application/json')
     response_body = json.loads(response.content, encoding='utf-8')
     token = response_body['tokens']['access']
@@ -208,12 +217,15 @@ def test_avatar_upload_with_incorrect_headers(client: Client, correct_login: Dic
         'HTTP_AUTHORIZATION': f'Bearer {token}',
         **headers
     }
-    response = client.post(
+    response = client.generic(
+        'POST',
         '/api/v1/user/update/avatar/',
-        data={},
+        generate_dump(1024),
         **headers)
     response_body = json.loads(response.content, encoding='utf8')
-    # Сначала проверяем, что сервер вернул корректные данные
+    # На всякий случай удаляем папку медиа пользователя, вдруг
+    # тест провалился и файл загрузился
+    request.node.user_media = '/'.join([settings.MEDIA_ROOT, correct_login['email']])
     assert response.status_code == 400 and \
            response_body['status'] == 'error' and \
            response_body['message']
