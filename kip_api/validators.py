@@ -13,3 +13,10 @@ def validate_image(image):
 def validate_content_type(content_type, correct_content_types):
     if not content_type.lower() in correct_content_types:
         raise ValidationError('неподдерживаемый тип заголовка Content-Type.')
+
+
+def validate_file_size(file, max_size):
+    if file.size > max_size:
+        raise ValidationError('слишком большой размер файла.')
+    if file.size == 0:
+        raise ValidationError('файл не может быть пустым.')
