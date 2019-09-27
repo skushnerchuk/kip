@@ -35,18 +35,13 @@ UPDATE_PROFILE_BODY = {
 #
 # Заголовки запроса для тестирования загрузки аватара
 #
-UPLOAD_AVATAR_HEADERS = [
+UPLOAD_AVATAR_HEADERS = \
     {
-        'Content-Type': 'image/jpeg',
-        'Content-Disposition': 'attachment; filename=avatar.jpg',
-    },
-]
+        'HTTP_CONTENT_TYPE': 'image/jpeg',
+        'HTTP_CONTENT_DISPOSITION': 'attachment; filename=avatar.jpg'
+    }
 
 INCORRECT_UPLOAD_AVATAR_HEADERS = [
-    {
-        'Content-Type': 'image/jpeg',
-        'Content-Disposition': 'attachment; filename=data.pdf'
-    },
     {
         'Content-Type': 'application/json',
         'Content-Disposition': 'attachment; filename=avatar.jpg'

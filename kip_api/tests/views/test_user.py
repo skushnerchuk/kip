@@ -166,7 +166,7 @@ def test_confirm_email(client: Client, correct_register: [(str, Dict)]) -> None:
 #
 
 def test_avatar_upload(client: Client, correct_login: Dict) -> None:
-    """Проверка загрузки, когдя все входные данные корректны"""
+    """Проверка загрузки, когда все входные данные корректны"""
     response = client.post('/api/v1/auth/login/',
                            data=correct_login,
                            content_type='application/json')
@@ -177,7 +177,18 @@ def test_avatar_upload(client: Client, correct_login: Dict) -> None:
         **UPLOAD_AVATAR_HEADERS
     }
     response = client.post(
-        'user/update/avatar/',
-        data='',
+        '/api/v1/user/update/avatar/',
+        data={},
         **headers)
     response_body = json.loads(response.content, encoding='utf8')
+    # Сначала проверяем, что сервер вернул корректные данные
+    assert response.status_code == 200 and \
+           response_body['status'] == 'ok' and \
+           response_body['url']
+    # Теперь проверяем, что файл действительно сохранился на диске
+    # Это будет работать, если файл сохраняется на диске на той же машине
+    # Если файл сохраняется на другом сервере или в облаке, надо будет
+    # эту проверку заменить
+    filename = response_body['url'].split('/')[-1]
+    path = '/'.join([settings.MEDIA_ROOT, correct_login['email'], filename])
+    assert os.path.isfile(path)

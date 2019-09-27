@@ -82,7 +82,7 @@ class ErrorHandler(LoggingMixin):
 
     def validation_error_handler(self):
         return Response(
-            {'status': 'error', 'message': f'Неверные входные данные: {self.exc.message}'},
+            {'status': 'error', 'message': 'Неверные входные данные: {}'.format(self.exc)},
             status.HTTP_400_BAD_REQUEST,
             content_type='application/json'
         )
