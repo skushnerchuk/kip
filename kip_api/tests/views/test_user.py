@@ -1,7 +1,7 @@
 import json
 import re
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Callable
 
 import pytest
 from django.conf import settings
@@ -163,10 +163,14 @@ def test_confirm_email(client: Client, correct_register: [(str, Dict)]) -> None:
 
 
 #
-# Тестирование загрузки аватара в профиль пользователя"""
+# Тестирование загрузки аватара в профиль пользователя
 #
 
-def test_avatar_upload(client: Client, correct_login: Dict, delete_avatar, request) -> None:
+def test_avatar_upload(
+        client: Client,
+        correct_login: Dict,
+        delete_user_images: Callable,
+        request) -> None:
     """Проверка загрузки, когда все входные данные корректны"""
     response = client.post('/api/v1/auth/login/',
                            data=correct_login,
@@ -205,7 +209,7 @@ def test_avatar_upload_with_incorrect_headers(
         client: Client,
         correct_login: Dict,
         headers: Dict,
-        delete_avatar,
+        delete_user_images: Callable,
         request) -> None:
     """Проверка загрузки, когда заголовки некорректны"""
     response = client.post('/api/v1/auth/login/',

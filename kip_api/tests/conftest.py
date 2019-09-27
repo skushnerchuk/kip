@@ -54,7 +54,7 @@ def prepare_courses() -> NoReturn:
 
 
 @pytest.yield_fixture()
-def delete_avatar(request) -> None:
+def delete_user_images(request) -> None:
     def cleanup():
         shutil.rmtree(request.node.user_media)
 
