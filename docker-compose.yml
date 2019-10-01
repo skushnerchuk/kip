@@ -49,11 +49,11 @@ services:
       REFRESH_TOKEN_LIMIT: 1
       PORT: 8000
       DEBUG: 0
-#    logging:
-#      driver: "fluentd"
-#      options:
-#        fluentd-address: localhost:24224
-#        tag: api
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: api
 
   #
   # Так как сервис API запускается под gunicorn, а он статику отдавать не умеет,
@@ -68,31 +68,31 @@ services:
        - 80:80
     volumes:
        - ./nginx:/etc/nginx/conf.d
-       - ~/static:/static
+       - ~/kip/static:/static
 
-#  fluentd:
-#    build: ./fluentd
-#    container_name: kip_fluentd
-#    links:
-#      - "elasticsearch"
-#    ports:
-#      - "24224:24224"
-#      - "24224:24224/udp"
+  fluentd:
+    build: ./fluentd
+    container_name: kip_fluentd
+    links:
+      - "elasticsearch"
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
 
-#  elasticsearch:
-#    image: elasticsearch:6.7.0
-#    container_name: kip_es
-#    expose:
-#      - 9200
-#    ports:
-#      - "9200:9200"
-#    volumes:
-#      - ~/kip_es/data:/var/lib/elasticsearch
-#
-#  kibana:
-#    image: kibana:6.7.0
-#    container_name: kip_kibana
-#    links:
-#      - "elasticsearch"
-#    ports:
-#      - "5601:5601"
+  elasticsearch:
+    image: elasticsearch:6.7.0
+    container_name: kip_es
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+    volumes:
+      - ~/kip/es/data:/var/lib/elasticsearch
+
+  kibana:
+    image: kibana:6.7.0
+    container_name: kip_kibana
+    links:
+      - "elasticsearch"
+    ports:
+      - "5601:5601"

@@ -1,6 +1,6 @@
 import json
-import re
 import os
+import re
 from typing import Dict, Any, Optional, Callable
 
 import pytest
@@ -188,9 +188,10 @@ def test_avatar_upload(
         **headers)
     response_body = json.loads(response.content, encoding='utf8')
     # Сначала проверяем, что сервер вернул корректные данные
-    assert response.status_code == 200 and \
-           response_body['status'] == 'ok' and \
-           response_body['url']
+    assert \
+        response.status_code == 200 \
+        and response_body['status'] == 'ok' \
+        and response_body['url']
     # Теперь проверяем, что файл действительно сохранился на диске
     # Это будет работать, если файл сохраняется на диске на той же машине
     # Если файл сохраняется на другом сервере или в облаке, надо будет
@@ -230,6 +231,7 @@ def test_avatar_upload_with_incorrect_headers(
     # На всякий случай удаляем папку медиа пользователя, вдруг
     # тест провалился и файл загрузился
     request.node.user_media = '/'.join([settings.MEDIA_ROOT, correct_login['email']])
-    assert response.status_code == 400 and \
-           response_body['status'] == 'error' and \
-           response_body['message']
+    assert \
+        response.status_code == 400 and \
+        response_body['status'] == 'error' and \
+        response_body['message']
