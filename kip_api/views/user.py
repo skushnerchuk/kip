@@ -16,8 +16,8 @@ from kip_api.mixins import ValidateMixin
 from kip_api.models.courses import Participation
 from kip_api.serializers.courses import UserCoursesSerializer
 from kip_api.serializers.user import (
-    UserLoginSerializer, UserDetailSerializer, ProfileSerializer
-)
+    UserLoginSerializer, UserDetailSerializer, ProfileSerializer,
+    ProfileUpdateSerializer)
 from kip_api.utils import token_generator, APIException
 
 
@@ -134,7 +134,7 @@ class UserUpdateView(ValidateMixin, APIView):
     permission_classes = (IsAuthenticated,)
 
     def put(self, request):
-        validated_data = self.check(request, ProfileSerializer)
+        validated_data = self.check(request, ProfileUpdateSerializer)
         user = UserService.update_profile(request.user.pk, validated_data)
         serializer = UserDetailSerializer(user)
         return Response(

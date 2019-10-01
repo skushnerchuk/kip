@@ -54,11 +54,11 @@ class UserService(ObjectExistMixin, EmailMixin):
         TODO заменить pk на объект пользователя из request
         """
         user = get_object_or_404(User, pk=pk)
-        user.profile.biography = data['biography']
-        user.profile.birth_date = data['birth_date']
-        user.profile.first_name = data['first_name']
-        user.profile.middle_name = data['middle_name']
-        user.profile.last_name = data['last_name']
+        user.profile.biography = data.get('biography', '')
+        user.profile.birth_date = data.get('birth_date', None)
+        user.profile.first_name = data.get('first_name', '')
+        user.profile.middle_name = data.get('middle_name', '')
+        user.profile.last_name = data.get('last_name', '')
         user.profile.save()
         return user
 

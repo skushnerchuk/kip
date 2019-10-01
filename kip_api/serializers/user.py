@@ -14,7 +14,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     """
     Сведения о профиле пользователя
     """
-    avatar_url = serializers.SerializerMethodField()
+    avatar_url = serializers.SerializerMethodField(required=False, allow_null=True)
 
     class Meta:
         model = Profile
@@ -33,6 +33,22 @@ class ProfileSerializer(serializers.ModelSerializer):
                 return profile.avatar.url
         except ValueError as ex:
             return settings.DEFAULT_AVATAR
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    """
+    Обновление профиля пользователя
+    """
+
+    class Meta:
+        model = Profile
+        fields = ('first_name', 'middle_name', 'last_name', 'birth_date', 'biography')
+
+    birth_date = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    biography = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    first_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    middle_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
