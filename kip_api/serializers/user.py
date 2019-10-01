@@ -28,9 +28,11 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_avatar_url(profile):
-        if os.path.isfile(profile.avatar.path):
-            return profile.avatar.url
-        return settings.DEFAULT_AVATAR
+        try:
+            if os.path.isfile(profile.avatar.path):
+                return profile.avatar.url
+        except ValueError as ex:
+            return settings.DEFAULT_AVATAR
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
