@@ -21,7 +21,7 @@ from kip_api.serializers.user import (
     UserLoginSerializer, UserDetailSerializer,
     ProfileUpdateSerializer
 )
-from kip_api.utils import token_generator, APIException
+from kip_api.utils import token_generator, APIException, file_exists
 
 
 class ConfirmEmailView(APIView):
@@ -162,11 +162,8 @@ class UserUpdateAvatarView(APIView):
         """
         Загрузка аватара. Файл будет размещен в папке MEDIA_ROOT/user_email
         """
-        old_path = request.user.profile.avatar.path
-        old_url = request.user.profile.avatar.url
+        UserService().delete_avatar(request)
         UserService().upload_avatar(request)
-        if old_url != settings.DEFAULT_AVATAR:
-            os.remove(old_path)
         serializer = UserDetailSerializer(request.user)
         return Response(
             {
@@ -183,10 +180,11 @@ class UserUpdateAvatarView(APIView):
         Удаление аватара. Вместо него будет подставлен аватар по умолчанию
         """
         UserService().delete_avatar(request)
+        serializer = UserDetailSerializer(request.user)
         return Response(
             {
                 'status': 'ok',
-                'url': settings.DEFAULT_AVATAR
+                'user_detail': serializer.data
             },
             status.HTTP_200_OK,
             content_type='application/json'

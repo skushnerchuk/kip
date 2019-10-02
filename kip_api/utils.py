@@ -60,3 +60,10 @@ def image_file_name(instance, original_filename):
 def generate_dump(size: int) -> str:
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for _ in range(size))
+
+
+def file_exists(filepath):
+    try:
+        return os.path.isfile(filepath)
+    except:
+        return False

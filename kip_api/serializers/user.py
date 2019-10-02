@@ -15,7 +15,7 @@ def _get_avatar_url(profile):
         if os.path.isfile(profile.avatar.path):
             return profile.avatar.url
         return settings.DEFAULT_AVATAR
-    except ValueError as ex:
+    except ValueError:
         return settings.DEFAULT_AVATAR
 
 
