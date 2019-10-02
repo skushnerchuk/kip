@@ -16,8 +16,9 @@ from kip_api.mixins import ValidateMixin
 from kip_api.models.courses import Participation
 from kip_api.serializers.courses import UserCoursesSerializer
 from kip_api.serializers.user import (
-    UserLoginSerializer, UserDetailSerializer, ProfileSerializer,
-    ProfileUpdateSerializer)
+    UserLoginSerializer, UserDetailSerializer,
+    ProfileUpdateSerializer
+)
 from kip_api.utils import token_generator, APIException
 
 

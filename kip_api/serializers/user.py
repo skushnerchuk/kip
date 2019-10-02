@@ -10,6 +10,15 @@ from rest_framework import serializers
 from kip_api.models import Profile
 
 
+def _get_avatar_url(profile):
+    try:
+        if os.path.isfile(profile.avatar.path):
+            return profile.avatar.url
+        return settings.DEFAULT_AVATAR
+    except ValueError as ex:
+        return settings.DEFAULT_AVATAR
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     """
     Сведения о профиле пользователя
@@ -28,11 +37,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_avatar_url(profile):
-        try:
-            if os.path.isfile(profile.avatar.path):
-                return profile.avatar.url
-        except ValueError as ex:
-            return settings.DEFAULT_AVATAR
+        return _get_avatar_url(profile)
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
@@ -40,15 +45,21 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
     Обновление профиля пользователя
     """
 
+    avatar_url = serializers.SerializerMethodField(required=False, allow_null=True)
+
     class Meta:
         model = Profile
-        fields = ('first_name', 'middle_name', 'last_name', 'birth_date', 'biography')
+        fields = ('first_name', 'middle_name', 'last_name', 'birth_date', 'biography', 'avatar_url',)
 
     birth_date = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     biography = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     first_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     middle_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+
+    @staticmethod
+    def get_avatar_url(profile):
+        return _get_avatar_url(profile)
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
