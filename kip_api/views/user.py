@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.encoding import force_text
@@ -160,12 +162,16 @@ class UserUpdateAvatarView(APIView):
         """
         Загрузка аватара. Файл будет размещен в папке MEDIA_ROOT/user_email
         """
-        UserService().delete_avatar(request)
+        old_path = request.user.profile.avatar.path
+        old_url = request.user.profile.avatar.url
         UserService().upload_avatar(request)
+        if old_url != settings.DEFAULT_AVATAR:
+            os.remove(old_path)
+        serializer = UserDetailSerializer(request.user)
         return Response(
             {
                 'status': 'ok',
-                'url': request.user.profile.avatar.url
+                'user_detail': serializer.data
             },
             status.HTTP_200_OK,
             content_type='application/json'
