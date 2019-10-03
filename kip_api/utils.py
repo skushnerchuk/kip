@@ -62,8 +62,8 @@ def generate_dump(size: int) -> str:
     return ''.join(random.choice(letters) for _ in range(size))
 
 
-def file_exists(filepath):
-    try:
-        return os.path.isfile(filepath)
-    except:
-        return False
+# def file_exists(filepath):
+#     try:
+#         return os.path.isfile(filepath)
+#     except:
+#         return False

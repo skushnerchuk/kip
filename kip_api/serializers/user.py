@@ -24,10 +24,11 @@ class ProfileSerializer(serializers.ModelSerializer):
     Сведения о профиле пользователя
     """
     avatar_url = serializers.SerializerMethodField(required=False, allow_null=True)
+    role = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Profile
-        fields = ('first_name', 'middle_name', 'last_name', 'birth_date', 'biography', 'avatar_url',)
+        fields = ('first_name', 'middle_name', 'last_name', 'birth_date', 'biography', 'avatar_url', 'role',)
 
     birth_date = serializers.DateField(required=True, allow_null=True)
     biography = serializers.CharField(required=True, allow_null=True, allow_blank=True)
@@ -38,6 +39,10 @@ class ProfileSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_avatar_url(profile):
         return _get_avatar_url(profile)
+
+    @staticmethod
+    def get_role(profile):
+        return str(Profile.ROLE_CHOICES[profile.role][1])
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):

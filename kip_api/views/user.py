@@ -1,5 +1,3 @@
-import os
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.encoding import force_text
@@ -21,7 +19,7 @@ from kip_api.serializers.user import (
     UserLoginSerializer, UserDetailSerializer,
     ProfileUpdateSerializer
 )
-from kip_api.utils import token_generator, APIException, file_exists
+from kip_api.utils import token_generator, APIException
 
 
 class ConfirmEmailView(APIView):
