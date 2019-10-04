@@ -25,10 +25,14 @@ class ProfileSerializer(serializers.ModelSerializer):
     """
     avatar_url = serializers.SerializerMethodField(required=False, allow_null=True)
     role = serializers.SerializerMethodField(read_only=True)
+    role_id = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Profile
-        fields = ('first_name', 'middle_name', 'last_name', 'birth_date', 'biography', 'avatar_url', 'role',)
+        fields = (
+            'first_name', 'middle_name', 'last_name',
+            'birth_date', 'biography', 'avatar_url',
+            'role', 'role_id')
 
     birth_date = serializers.DateField(required=True, allow_null=True)
     biography = serializers.CharField(required=True, allow_null=True, allow_blank=True)
@@ -43,6 +47,10 @@ class ProfileSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_role(profile):
         return str(Profile.ROLE_CHOICES[profile.role][1])
+
+    @staticmethod
+    def get_role_id(profile):
+        return profile.role
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
