@@ -1,6 +1,7 @@
 import json
+import os
 import re
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Callable
 
 import pytest
 from django.conf import settings
@@ -12,8 +13,11 @@ from rest_framework import status
 from kip_api.models import User
 from kip_api.tests.types_for_test import (
     ENDPOINTS, CORRECT_LOGIN_BODY, INCORRECT_REGISTER_BODY,
-    UPDATE_PROFILE_BODY,
+    UPDATE_PROFILE_BODY, UPLOAD_AVATAR_HEADERS, INCORRECT_UPLOAD_AVATAR_HEADERS
 )
+from kip_api.utils import generate_dump
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kip.settings")
 
 EmailResponse = Optional[mail.EmailMessage]
 
@@ -156,3 +160,78 @@ def test_confirm_email(client: Client, correct_register: [(str, Dict)]) -> None:
     # Смотрим что почта подтвердилась
     user = User.objects.get(email=recipient)
     assert user.email_confirmed
+
+
+#
+# Тестирование загрузки аватара в профиль пользователя
+#
+
+def test_avatar_upload(
+        client: Client,
+        correct_login: Dict,
+        delete_user_images: Callable,
+        request) -> None:
+    """Проверка загрузки, когда все входные данные корректны"""
+    response = client.post('/api/v1/auth/login/',
+                           data=correct_login,
+                           content_type='application/json')
+    response_body = json.loads(response.content, encoding='utf-8')
+    token = response_body['tokens']['access']
+    headers = {
+        'HTTP_AUTHORIZATION': f'Bearer {token}',
+        **UPLOAD_AVATAR_HEADERS
+    }
+    response = client.generic(
+        'POST',
+        '/api/v1/user/update/avatar/',
+        generate_dump(1024),
+        **headers)
+    response_body = json.loads(response.content, encoding='utf8')
+    # Сначала проверяем, что сервер вернул корректные данные
+    assert \
+        response.status_code == 200 \
+        and response_body['status'] == 'ok' \
+        and response_body['url']
+    # Теперь проверяем, что файл действительно сохранился на диске
+    # Это будет работать, если файл сохраняется на диске на той же машине
+    # Если файл сохраняется на другом сервере или в облаке, надо будет
+    # эту проверку заменить
+    filename = response_body['url'].split('/')[-1]
+    path = '/'.join([settings.MEDIA_ROOT, correct_login['email'], filename])
+    # после теста удаляем всю папку медиа для этого пользователя
+    request.node.user_media = '/'.join([settings.MEDIA_ROOT, correct_login['email']])
+    assert os.path.isfile(path)
+
+
+@pytest.mark.parametrize(
+    'headers', [headers for headers in INCORRECT_UPLOAD_AVATAR_HEADERS]
+)
+def test_avatar_upload_with_incorrect_headers(
+        client: Client,
+        correct_login: Dict,
+        headers: Dict,
+        delete_user_images: Callable,
+        request) -> None:
+    """Проверка загрузки, когда заголовки некорректны"""
+    response = client.post('/api/v1/auth/login/',
+                           data={},
+                           content_type='application/json')
+    response_body = json.loads(response.content, encoding='utf-8')
+    token = response_body['tokens']['access']
+    headers = {
+        'HTTP_AUTHORIZATION': f'Bearer {token}',
+        **headers
+    }
+    response = client.generic(
+        'POST',
+        '/api/v1/user/update/avatar/',
+        generate_dump(1024),
+        **headers)
+    response_body = json.loads(response.content, encoding='utf8')
+    # На всякий случай удаляем папку медиа пользователя, вдруг
+    # тест провалился и файл загрузился
+    request.node.user_media = '/'.join([settings.MEDIA_ROOT, correct_login['email']])
+    assert \
+        response.status_code == 400 and \
+        response_body['status'] == 'error' and \
+        response_body['message']
