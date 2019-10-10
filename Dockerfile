@@ -15,7 +15,7 @@ RUN echo "http://mirror.leaseweb.com/alpine/edge/testing" >> /etc/apk/repositori
     && apk add --no-cache --virtual .build-deps gcc libc-dev linux-headers bash \
             python3-dev libgcc libstdc++ musl geos-dev libxml2-dev libxslt-dev \
             mariadb-dev libffi libffi-dev gmp-dev mpfr-dev bash jq curl \
-            jpeg-dev zlib-dev freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev
+            jpeg-dev zlib-dev freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev \
     && pip install --no-cache-dir -r requirements.txt \
     && apk del --no-cache --purge .build-deps \
     && rm -rf /var/cache/apk/*
