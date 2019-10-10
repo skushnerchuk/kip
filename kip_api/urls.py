@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
@@ -6,7 +8,7 @@ from .views.courses import (
 )
 from .views.user import (
     CreateUserView, ConfirmEmailView, LoginView, UserDetailView, LogoutView,
-    UserUpdateView
+    UserUpdateView, UserUpdateAvatarView
 )
 
 urlpatterns = [
@@ -28,6 +30,8 @@ urlpatterns = [
     path('user/', UserDetailView.as_view(), name='user_detail'),
     # Обновление сведений о пользователе
     path('user/update/', UserUpdateView.as_view(), name='user_update'),
+    # Загрузка или удаление аватара пользователя
+    path('user/update/avatar/', UserUpdateAvatarView.as_view(), name='user_update_avatar'),
     # Просмотр курсов, на которые записан пользователь
     path('user/groups/', UserGroupsView.as_view(), name='user_courses'),
 
@@ -39,4 +43,5 @@ urlpatterns = [
     path('course/signup/', CourseSignupView.as_view(), name='course_signup'),
     # Просмотр расписания группы курса
     path('course/<str:group_id>/schedule/', CourseGroupScheduleView.as_view(), name='group_schedule'),
-]
+    #
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

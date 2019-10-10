@@ -136,7 +136,7 @@ class LessonFactory(factory.django.DjangoModelFactory):
                 GroupFactory(course=c)
 
     @staticmethod
-    def generate_lessons(count):
+    def generate_lessons(count): # flake8: noqa C901
         groups = CourseGroup.objects.all()
         for c in groups:
             # Отсчет номеров уроков ведем с 1
@@ -195,7 +195,7 @@ def generate_groups(count):
             GroupFactory(course=c)
 
 
-def generate_lessons(count):
+def generate_lessons(count): # flake8: noqa C901
     groups = CourseGroup.objects.all()
     for c in groups:
         # Отсчет номеров уроков ведем с 1

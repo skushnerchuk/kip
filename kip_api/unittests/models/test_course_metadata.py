@@ -189,6 +189,7 @@ class LessonMetadataTest(BaseTest):
             'Values of __str__() function result and name field must be equal!'
         )
 
+
 class UserLessonsMetadataTest(BaseTest):
     """
     Тестирование участия пользователей в группах обучения курсов
@@ -213,7 +214,7 @@ class UserLessonsMetadataTest(BaseTest):
 
     def test_fields_exist(self):
         """Проверяем, что присутствуют все поля"""
-        fields = ['user', 'lesson', 'homework', 'paid',]
+        fields = ['user', 'lesson', 'homework', 'paid']
         self.check_fields_exist(UserLessons, fields)
 
     def test_str_function(self):

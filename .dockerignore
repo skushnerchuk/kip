@@ -12,3 +12,4 @@ nginx/
 fluentd/
 bus/
 run_cover.sh
+monitoring/
