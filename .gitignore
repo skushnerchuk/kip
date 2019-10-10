@@ -129,3 +129,4 @@ dmypy.json
 run_cover.sh
 /.xml
 /kip.sql
+/images/**

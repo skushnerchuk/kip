@@ -14,11 +14,14 @@ sentry_sdk.init(
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '41j6lwa3&%qww!)o!o_8oom^o&%ul=bu#jldq51erh$v-o3l-m'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY',
+                            '41j6lwa3&%qww!)o!o_8oom^o&%ul=bu1jldq51erh$v-o3l-m')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = int(os.environ.get('DEBUG', 1))
-TESTING = (len(sys.argv) > 1 and sys.argv[1].lower() == 'test') or ('pytest' in sys.argv[0].lower())
+# По умолчанию отключаем отладку. Для ее включения надо выставить ее равной 1
+# в текущем окружении
+DEBUG = int(os.environ.get('DEBUG', 0))
+TESTING = (len(sys.argv) > 1 and sys.argv[1].lower() == 'test') or \
+          ('pytest' in sys.argv[0].lower())
 if TESTING:
     EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
@@ -29,8 +32,6 @@ if DEBUG:
 
 ALLOWED_HOSTS = ['*']
 INTERNAL_IPS = ('127.0.0.1',)
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -49,6 +50,7 @@ if DEBUG:
     INSTALLED_APPS.append('debug_toolbar')
 
 MIDDLEWARE = [
+    'kip_api.middleware.MonitoringMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -75,6 +77,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.media',
             ],
         },
     },
@@ -124,13 +127,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
 LANGUAGE_CODE = 'ru-RU'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
@@ -227,3 +226,10 @@ logging.basicConfig(
 # Гасим логи от factory_boy, они нам не нужны
 logging.getLogger('factory').setLevel(logging.ERROR)
 logging.getLogger('faker').setLevel(logging.ERROR)
+
+# Настройки для работы с медиа
+MEDIA_URL = '/images/'
+MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(BASE_DIR, 'images'))
+DEFAULT_AVATAR = ''.join([MEDIA_URL, 'default_avatar.png'])
+MAX_AVATAR_SIZE = int(os.getenv('MAX_AVATAR_SIZE', 2 * 1024 * 1024))
+APPEND_SLASH = False

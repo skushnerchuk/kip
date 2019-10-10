@@ -1,24 +1,25 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from rest_framework import status
 from rest_framework.generics import RetrieveAPIView, ListAPIView
-from rest_framework.parsers import JSONParser
+from rest_framework.parsers import JSONParser, FileUploadParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from django.conf import settings
 from kip_api.logic.user import UserService
 from kip_api.mixins import ValidateMixin
-from kip_api.serializers.user import (
-    UserLoginSerializer, UserDetailSerializer, ProfileSerializer,
-)
-from kip_api.serializers.courses import UserCoursesSerializer
-from kip_api.utils import token_generator, APIException
 from kip_api.models.courses import Participation
+from kip_api.serializers.courses import UserCoursesSerializer
+from kip_api.serializers.user import (
+    UserLoginSerializer, UserDetailSerializer,
+    ProfileUpdateSerializer
+)
+from kip_api.utils import token_generator, APIException
 
 
 class ConfirmEmailView(APIView):
@@ -134,9 +135,50 @@ class UserUpdateView(ValidateMixin, APIView):
     permission_classes = (IsAuthenticated,)
 
     def put(self, request):
-        validated_data = self.check(request, ProfileSerializer)
+        validated_data = self.check(request, ProfileUpdateSerializer)
         user = UserService.update_profile(request.user.pk, validated_data)
         serializer = UserDetailSerializer(user)
+        return Response(
+            {
+                'status': 'ok',
+                'user_detail': serializer.data
+            },
+            status.HTTP_200_OK,
+            content_type='application/json'
+        )
+
+
+class UserUpdateAvatarView(APIView):
+    """
+    Обновление или удаление аватара пользователя
+    """
+    parser_classes = (FileUploadParser, MultiPartParser,)
+    permission_classes = (IsAuthenticated,)
+
+    @staticmethod
+    def post(request):
+        """
+        Загрузка аватара. Файл будет размещен в папке MEDIA_ROOT/user_email
+        """
+        UserService().delete_avatar(request)
+        UserService().upload_avatar(request)
+        serializer = UserDetailSerializer(request.user)
+        return Response(
+            {
+                'status': 'ok',
+                'user_detail': serializer.data
+            },
+            status.HTTP_200_OK,
+            content_type='application/json'
+        )
+
+    @staticmethod
+    def delete(request):
+        """
+        Удаление аватара. Вместо него будет подставлен аватар по умолчанию
+        """
+        UserService().delete_avatar(request)
+        serializer = UserDetailSerializer(request.user)
         return Response(
             {
                 'status': 'ok',

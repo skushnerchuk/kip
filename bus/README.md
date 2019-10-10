@@ -4,6 +4,7 @@
 
 Запуск кластера RabbitMQ осуществляется командой:
 ```bash
+docker network create rabbitmq-cluster
 docker-compose -f docker-compose-rabbitmq-cluster.yml up -d
 ```
 Формирование необходимой внутренней структуры очередей и правил произойдет автоматически.
@@ -13,6 +14,7 @@ docker-compose -f docker-compose-rabbitmq-cluster.yml up -d
 
 **Список обработчиков:**
 * **[handlers/email](/bus/handlers/email/README.md)** - получает из шины запросы на отправку электронной почты и выполняет эту отправку.
+* **[handlers/metrics](/bus/handlers/metrics/README.md)** - получает из шины запросы на отправку метрик и выполняет эту отправку.
 
 Последовательность действий по запуску каждого обработчика описана в его документации. Для запуска всех обработчиков
 на одной машине достаточно выполнить команду:

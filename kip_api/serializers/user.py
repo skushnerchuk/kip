@@ -1,27 +1,78 @@
 #
 # Сериализаторы представлений пользователей
 #
+import os
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from kip_api.models import Profile
 
 
+def _get_avatar_url(profile):
+    try:
+        if os.path.isfile(profile.avatar.path):
+            return profile.avatar.url
+        return settings.DEFAULT_AVATAR
+    except ValueError:
+        return settings.DEFAULT_AVATAR
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     """
     Сведения о профиле пользователя
     """
+    avatar_url = serializers.SerializerMethodField(required=False, allow_null=True)
+    role = serializers.SerializerMethodField(read_only=True)
+    role_id = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Profile
-        fields = ('first_name', 'middle_name', 'last_name', 'birth_date', 'biography',)
+        fields = (
+            'first_name', 'middle_name', 'last_name',
+            'birth_date', 'biography', 'avatar_url',
+            'role', 'role_id')
 
     birth_date = serializers.DateField(required=True, allow_null=True)
     biography = serializers.CharField(required=True, allow_null=True, allow_blank=True)
     first_name = serializers.CharField(required=True, allow_null=True, allow_blank=True)
     middle_name = serializers.CharField(required=True, allow_null=True, allow_blank=True)
     last_name = serializers.CharField(required=True, allow_null=True, allow_blank=True)
+
+    @staticmethod
+    def get_avatar_url(profile):
+        return _get_avatar_url(profile)
+
+    @staticmethod
+    def get_role(profile):
+        return str(Profile.ROLE_CHOICES[profile.role][1])
+
+    @staticmethod
+    def get_role_id(profile):
+        return profile.role
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    """
+    Обновление профиля пользователя
+    """
+
+    avatar_url = serializers.SerializerMethodField(required=False, allow_null=True)
+
+    class Meta:
+        model = Profile
+        fields = ('first_name', 'middle_name', 'last_name', 'birth_date', 'biography', 'avatar_url',)
+
+    birth_date = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    biography = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    first_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    middle_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+
+    @staticmethod
+    def get_avatar_url(profile):
+        return _get_avatar_url(profile)
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
