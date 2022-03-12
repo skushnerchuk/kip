@@ -12,4 +12,4 @@ django-modeladmin-reorder==0.3.1
 amqpstorm==2.7.1
 sentry-sdk==0.11.2
 influxdb==5.2.3
-pillow==6.1.0
+pillow==9.0.1
